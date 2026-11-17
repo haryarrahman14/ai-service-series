@@ -1,0 +1,4 @@
+shared/model/
+__pycache__/
+.venv/
+shared/onnxruntime/
