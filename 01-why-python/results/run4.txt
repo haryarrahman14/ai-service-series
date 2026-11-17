@@ -1,0 +1,242 @@
+===== Pure Python vs NumPy =====
+Pure Python vs NumPy, 200x200 matrix multiplication
+    pure Python  : 284.840 ms
+    NumPy (@)    : 0.058 ms (best of 20)
+    NumPy is 4907x faster
+
+===== Python =====
+main.py: 107 lines of code
+
+== case 1: small PNG (cat.png, MobileNetV2) ==
+
+[1] Classifying (top-3, ONNX Runtime CPU)
+    Egyptian cat    27.30%
+    tiger cat       20.55%
+    tabby           17.49%
+    input tensor: mean -0.1059, std 0.6726
+
+[2] Where one request spends its time (200 requests after 10 warm-ups)
+                              median         p95    share
+    decode                  3.404 ms    3.507 ms    31.3%
+    resize + crop           0.875 ms    0.917 ms     8.1%
+    normalize               0.915 ms    0.967 ms     8.4%
+    infer (ONNX Runtime)    5.641 ms    6.558 ms    51.9%
+    postprocess             0.027 ms    0.035 ms     0.3%
+    total                  10.869 ms   11.799 ms
+
+== case 2: small JPEG (cat.jpg, MobileNetV2) ==
+
+[1] Classifying (top-3, ONNX Runtime CPU)
+    Egyptian cat    23.05%
+    tabby           17.01%
+    tiger cat       17.01%
+    input tensor: mean -0.1057, std 0.6722
+
+[2] Where one request spends its time (200 requests after 10 warm-ups)
+                              median         p95    share
+    decode                  0.754 ms    0.840 ms     9.1%
+    resize + crop           0.873 ms    0.932 ms    10.6%
+    normalize               0.907 ms    0.950 ms    11.0%
+    infer (ONNX Runtime)    5.647 ms    6.477 ms    68.5%
+    postprocess             0.027 ms    0.036 ms     0.3%
+    total                   8.246 ms    9.063 ms
+
+== case 3: large JPEG (cat-large.jpg, MobileNetV2) ==
+
+[1] Classifying (top-3, ONNX Runtime CPU)
+    Egyptian cat    28.34%
+    tiger cat       20.02%
+    tabby           17.91%
+    input tensor: mean -0.1062, std 0.6726
+
+[2] Where one request spends its time (200 requests after 10 warm-ups)
+                              median         p95    share
+    decode                  6.151 ms    6.287 ms    31.1%
+    resize + crop           7.039 ms    7.132 ms    35.6%
+    normalize               0.934 ms    0.977 ms     4.7%
+    infer (ONNX Runtime)    5.592 ms    6.957 ms    28.3%
+    postprocess             0.030 ms    0.037 ms     0.2%
+    total                  19.789 ms   21.151 ms
+
+== case 4: large model (cat.png, ResNet50) ==
+
+[1] Classifying (top-3, ONNX Runtime CPU)
+    Egyptian cat    26.64%
+    tabby           8.51%
+    tiger cat       7.38%
+    input tensor: mean -0.1059, std 0.6726
+
+[2] Where one request spends its time (200 requests after 10 warm-ups)
+                              median         p95    share
+    decode                  3.454 ms    3.554 ms     8.1%
+    resize + crop           0.875 ms    0.925 ms     2.0%
+    normalize               0.918 ms    0.959 ms     2.1%
+    infer (ONNX Runtime)   37.455 ms   38.654 ms    87.6%
+    postprocess             0.037 ms    0.040 ms     0.1%
+    total                  42.771 ms   44.016 ms
+
+Env: Python 3.12.13, onnxruntime 1.32.0, numpy 2.5.5, arm/arm64, ORT intra_op_num_threads=0 (0 = default ORT)
+
+Summary (median ms)        prep     model     total
+    small PNG             5.205     5.641    10.869
+    small JPEG            2.547     5.647     8.246
+    large JPEG           14.129     5.592    19.789
+    large model           5.272    37.455    42.771
+
+===== Go =====
+main.go: 231 lines of code
+
+== case 1: small PNG (cat.png, MobileNetV2) ==
+
+[1] Classifying (top-3, ONNX Runtime CPU)
+    Egyptian cat    26.97%
+    tiger cat       20.82%
+    tabby           17.59%
+    input tensor: mean -0.1072, std 0.6755
+
+[2] Where one request spends its time (200 requests after 10 warm-ups)
+                              median         p95    share
+    decode                  6.193 ms    6.279 ms    41.4%
+    resize + crop           2.679 ms    3.124 ms    17.9%
+    normalize               0.234 ms    0.241 ms     1.6%
+    infer (ONNX Runtime)    5.808 ms    6.522 ms    38.8%
+    postprocess             0.010 ms    0.010 ms     0.1%
+    total                  14.975 ms   15.685 ms
+
+== case 2: small JPEG (cat.jpg, MobileNetV2) ==
+
+[1] Classifying (top-3, ONNX Runtime CPU)
+    Egyptian cat    22.30%
+    tabby           17.20%
+    tiger cat       17.19%
+    input tensor: mean -0.1063, std 0.6743
+
+[2] Where one request spends its time (200 requests after 10 warm-ups)
+                              median         p95    share
+    decode                  1.681 ms    1.724 ms    15.6%
+    resize + crop           3.066 ms    3.699 ms    28.5%
+    normalize               0.234 ms    0.240 ms     2.2%
+    infer (ONNX Runtime)    5.714 ms    6.510 ms    53.1%
+    postprocess             0.010 ms    0.010 ms     0.1%
+    total                  10.758 ms   11.641 ms
+
+== case 3: large JPEG (cat-large.jpg, MobileNetV2) ==
+
+[1] Classifying (top-3, ONNX Runtime CPU)
+    Egyptian cat    27.96%
+    tiger cat       20.27%
+    tabby           17.98%
+    input tensor: mean -0.1068, std 0.6745
+
+[2] Where one request spends its time (200 requests after 10 warm-ups)
+                              median         p95    share
+    decode                 19.526 ms   20.441 ms    35.9%
+    resize + crop          29.004 ms   30.362 ms    53.4%
+    normalize               0.238 ms    0.255 ms     0.4%
+    infer (ONNX Runtime)    5.590 ms    6.899 ms    10.3%
+    postprocess             0.010 ms    0.011 ms     0.0%
+    total                  54.333 ms   57.120 ms
+
+== case 4: large model (cat.png, ResNet50) ==
+
+[1] Classifying (top-3, ONNX Runtime CPU)
+    Egyptian cat    27.15%
+    tabby           8.44%
+    tiger cat       7.37%
+    input tensor: mean -0.1072, std 0.6755
+
+[2] Where one request spends its time (200 requests after 10 warm-ups)
+                              median         p95    share
+    decode                  6.245 ms    6.743 ms    13.2%
+    resize + crop           2.711 ms    3.247 ms     5.7%
+    normalize               0.235 ms    0.244 ms     0.5%
+    infer (ONNX Runtime)   37.906 ms   40.056 ms    80.3%
+    postprocess             0.010 ms    0.037 ms     0.0%
+    total                  47.204 ms   49.530 ms
+
+Env: Go 1.27.4, github.com/microsoft/onnxruntime/go v0.0.0-20261113061211-fab30a46491a, onnxruntime 1.32.0, darwin/arm64, SessionOptions default (intra_op_num_threads=0 = default ORT)
+
+Summary (median ms)        prep     model     total
+    small PNG             9.106     5.808    14.975
+    small JPEG            4.985     5.714    10.758
+    large JPEG           48.768     5.590    54.333
+    large model           9.274    37.906    47.204
+
+===== Rust =====
+main.rs: 157 lines of code
+
+== case 1: small PNG (cat.png, MobileNetV2) ==
+
+[1] Classifying (top-3, ONNX Runtime CPU)
+    Egyptian cat    27.27%
+    tiger cat       21.01%
+    tabby           17.71%
+    input tensor: mean -0.1059, std 0.6726
+
+[2] Where one request spends its time (200 requests after 10 warm-ups)
+                              median         p95    share
+    decode                  1.786 ms    1.965 ms    18.8%
+    resize + crop           1.888 ms    1.964 ms    19.9%
+    normalize               0.125 ms    0.127 ms     1.3%
+    infer (ONNX Runtime)    5.653 ms    6.601 ms    59.6%
+    postprocess             0.007 ms    0.008 ms     0.1%
+    total                   9.485 ms   10.467 ms
+
+== case 2: small JPEG (cat.jpg, MobileNetV2) ==
+
+[1] Classifying (top-3, ONNX Runtime CPU)
+    Egyptian cat    22.65%
+    tabby           17.41%
+    tiger cat       16.96%
+    input tensor: mean -0.1038, std 0.6718
+
+[2] Where one request spends its time (200 requests after 10 warm-ups)
+                              median         p95    share
+    decode                  0.871 ms    0.933 ms    10.2%
+    resize + crop           1.889 ms    1.970 ms    22.1%
+    normalize               0.125 ms    0.129 ms     1.5%
+    infer (ONNX Runtime)    5.643 ms    6.645 ms    66.2%
+    postprocess             0.007 ms    0.008 ms     0.1%
+    total                   8.531 ms    9.596 ms
+
+== case 3: large JPEG (cat-large.jpg, MobileNetV2) ==
+
+[1] Classifying (top-3, ONNX Runtime CPU)
+    Egyptian cat    28.16%
+    tiger cat       20.03%
+    tabby           17.82%
+    input tensor: mean -0.1053, std 0.6721
+
+[2] Where one request spends its time (200 requests after 10 warm-ups)
+                              median         p95    share
+    decode                  8.919 ms    9.160 ms    35.5%
+    resize + crop          10.483 ms   10.624 ms    41.7%
+    normalize               0.126 ms    0.132 ms     0.5%
+    infer (ONNX Runtime)    5.536 ms    6.913 ms    22.0%
+    postprocess             0.007 ms    0.008 ms     0.0%
+    total                  25.137 ms   26.463 ms
+
+== case 4: large model (cat.png, ResNet50) ==
+
+[1] Classifying (top-3, ONNX Runtime CPU)
+    Egyptian cat    26.95%
+    tabby           8.42%
+    tiger cat       7.32%
+    input tensor: mean -0.1059, std 0.6726
+
+[2] Where one request spends its time (200 requests after 10 warm-ups)
+                              median         p95    share
+    decode                  1.844 ms    2.106 ms     4.4%
+    resize + crop           1.895 ms    2.006 ms     4.6%
+    normalize               0.125 ms    0.129 ms     0.3%
+    infer (ONNX Runtime)   37.646 ms   39.163 ms    90.5%
+    postprocess             0.008 ms    0.008 ms     0.0%
+    total                  41.595 ms   43.072 ms
+
+Env: ort 2.0.0-rc.15, image 0.25.10, onnxruntime dylib git-commit-id=fab30a4, macos/aarch64, ORT thread default
+
+Summary (median ms)        prep     model     total
+    small PNG             3.806     5.653     9.485
+    small JPEG            2.898     5.643     8.531
+    large JPEG           19.547     5.536    25.137
+    large model           3.887    37.646    41.595
