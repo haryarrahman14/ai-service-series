@@ -1,6 +1,6 @@
 # Why is every AI service written in Python? Why not Go, which is simpler, or Rust, which is faster?
 
-*AI Service series, part 1. I measured this on my own machine. The code is in the repo.*
+*Bassically · AI Service series, part 1. I measured this on my own machine. The code is in the repo.*
 
 Short answer: Python is slow, but in an AI service it does almost none of the work. The heavy steps run in C and C++ libraries, and those libraries are so good that Python was the fastest of the three on JPEG photos. Python is also where models are made.
 
@@ -44,6 +44,20 @@ More than 99% of the request time is spent inside those three libraries.
 ## The same request in Go and Rust
 
 I wrote the same request in Go and in Rust: same model file, same photo, same ONNX Runtime 1.32.0, CPU only.
+
+"CPU only" means this: a model can run on the ordinary processor (the CPU) or on an accelerator such as a GPU. I turned accelerators off in all three, so the same engine is compared. Without that, the Rust binding on macOS picks Apple's accelerator by itself, and the results cannot be compared.
+
+Pillow and NumPy are Python libraries, so Go and Rust do not use them. Each language uses its own image library:
+
+```
+step         Python               Go                          Rust
+decode       Pillow (C)           image/png, image/jpeg       image crate
+resize       Pillow (C)           golang.org/x/image/draw     image crate
+normalize    NumPy (C)            a loop I wrote              a loop I wrote
+model        ONNX Runtime (C++)   ONNX Runtime (C++)          ONNX Runtime (C++)
+```
+
+Only ONNX Runtime is truly the same in all three. Go and Rust have no NumPy, so I wrote normalize myself as a short loop. That loop turned out faster than NumPy for this step: 0.12 ms in Rust, 0.23 ms in Go, 0.90 ms in Python.
 
 One photo and one model would be thin evidence, so I ran four cases:
 
@@ -114,7 +128,7 @@ Because models are made there, and a model goes through two stages.
 
 **Stage 1: training.** You write the model, feed it data, and the computer works out millions of numbers. This is done with PyTorch, which is a Python library.
 
-- The model was written and trained with PyTorch, in Python. PyTorch's C++ API is still labelled beta.
+- The model I used was built and trained with PyTorch, in Python. PyTorch's C++ API is still labelled beta.
 - Nearly half of new AI repositories on GitHub use Python (Octoverse 2025).
 - There is no compile step, so trying a change is quick.
 
@@ -168,7 +182,7 @@ It reports 6.1 ms for decode and 2.5 ms for resize, which matches the program.
 I checked that the three programs do the same work:
 
 - They feed the model the same input. For the PNG, no pixel differs by more than 1 level out of 255 after resizing. For JPEG the decoders differ a little more, up to 8 levels, because Go's JPEG decoder handles colour in a simpler way. Each program prints the mean and spread of its input so you can compare them.
-- The model, the photo, the ONNX Runtime version, the CPU setting and the thread setting are the same.
+- The model, the photo, the ONNX Runtime version and the thread count are the same, and all three run on the CPU.
 - Go uses the resize method that matches the other two. A faster Go method exists, but it is a different algorithm and changes the picture by up to 16 levels, so I did not use it.
 - Go's slow image handling is real: unpacking the PNG data alone takes 3.39 ms in Go against 0.86 ms in C.
 - Python takes no shortcut on the large JPEG. Pillow can decode a JPEG at reduced size; I checked that it does not do so here.
@@ -199,7 +213,7 @@ sh 01-why-python/run_all.sh
 
 Limits of this test:
 
-- It measures one request at a time, not a service under load. That is part 2.
+- It measures one request at a time, not a service receiving many requests at once. That is part 2.
 - All four cases use one photo of a cat. The large JPEG is an enlargement of it.
 - A busy machine ruins the numbers. One run made while other jobs were running gave Python 54 ms, and I discarded it.
 - On macOS the Rust binding uses Apple's CoreML by default. I forced CPU so all three use the same engine.
@@ -214,7 +228,7 @@ So choosing Go or Rust does not make the model faster. What these tests do not s
 
 ## Next
 
-Part 2 turns the Python and Go versions into HTTP services and tests them under load.
+Part 2 turns all three versions (Python, Go and Rust) into HTTP services and tests them with many requests at once.
 
 ## Setup
 
