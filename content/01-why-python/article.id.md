@@ -171,6 +171,45 @@ for _ in range(200):
     t5 = time.perf_counter()
 ```
 
+Loop yang sama di Go:
+
+```go
+for range 200 {
+	t0 := time.Now()
+	img := decode(imagePath)
+	t1 := time.Now()
+	cropped := resize(img)
+	t2 := time.Now()
+	x := normalize(cropped)
+	t3 := time.Now()
+	logits := infer(session, x)
+	t4 := time.Now()
+	_ = argmax(softmax(logits))
+	t5 := time.Now()
+}
+```
+
+Dan di Rust. `black_box` hanya mencegah compiler membuang hasil yang tidak dipakai lagi setelahnya:
+
+```rust
+for _ in 0..200 {
+    let t0 = Instant::now();
+    let img = decode(image_path);
+    let t1 = Instant::now();
+    let img = resize(&img);
+    let t2 = Instant::now();
+    let x = normalize(&img);
+    let t3 = Instant::now();
+    let logits = infer(session, x);
+    let t4 = Instant::now();
+    let best = argmax(&softmax(&logits));
+    let t5 = Instant::now();
+    std::hint::black_box(best);
+}
+```
+
+Di tiap loop, baris setelahnya menyimpan lima selisih antara `t0` dan `t5` sebagai waktu tiap langkah.
+
 Angka gambar di Go terlihat terlalu lambat, jadi saya cek dengan tool benchmark bawaan Go:
 
 ```sh
