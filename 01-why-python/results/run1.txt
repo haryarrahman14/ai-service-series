@@ -1,8 +1,8 @@
 ===== Pure Python vs NumPy =====
 Pure Python vs NumPy, 200x200 matrix multiplication
-    pure Python  : 284.570 ms
+    pure Python  : 336.980 ms
     NumPy (@)    : 0.058 ms (best of 20)
-    NumPy is 4899x faster
+    NumPy is 5810x faster
 
 ===== Python =====
 main.py: 107 lines of code
@@ -17,12 +17,12 @@ main.py: 107 lines of code
 
 [2] Where one request spends its time (200 requests after 10 warm-ups)
                               median         p95    share
-    decode                  3.363 ms    3.467 ms    30.9%
-    resize + crop           0.869 ms    0.911 ms     8.0%
-    normalize               0.903 ms    0.941 ms     8.3%
-    infer (ONNX Runtime)    5.708 ms    6.602 ms    52.5%
-    postprocess             0.024 ms    0.033 ms     0.2%
-    total                  10.880 ms   11.801 ms
+    decode                  3.309 ms    3.387 ms    31.3%
+    resize + crop           0.866 ms    0.896 ms     8.2%
+    normalize               0.848 ms    0.874 ms     8.0%
+    infer (ONNX Runtime)    5.525 ms    6.723 ms    52.2%
+    postprocess             0.020 ms    0.024 ms     0.2%
+    total                  10.583 ms   11.739 ms
 
 == case 2: small JPEG (cat.jpg, MobileNetV2) ==
 
@@ -34,12 +34,12 @@ main.py: 107 lines of code
 
 [2] Where one request spends its time (200 requests after 10 warm-ups)
                               median         p95    share
-    decode                  0.717 ms    0.795 ms     8.7%
-    resize + crop           0.868 ms    0.919 ms    10.6%
-    normalize               0.899 ms    0.940 ms    10.9%
-    infer (ONNX Runtime)    5.701 ms    6.630 ms    69.3%
-    postprocess             0.023 ms    0.034 ms     0.3%
-    total                   8.221 ms    9.155 ms
+    decode                  0.682 ms    0.722 ms     8.6%
+    resize + crop           0.864 ms    0.894 ms    11.0%
+    normalize               0.843 ms    0.865 ms    10.7%
+    infer (ONNX Runtime)    5.482 ms    6.588 ms    69.5%
+    postprocess             0.018 ms    0.021 ms     0.2%
+    total                   7.888 ms    9.008 ms
 
 == case 3: large JPEG (cat-large.jpg, MobileNetV2) ==
 
@@ -51,12 +51,12 @@ main.py: 107 lines of code
 
 [2] Where one request spends its time (200 requests after 10 warm-ups)
                               median         p95    share
-    decode                  6.075 ms    6.242 ms    30.6%
-    resize + crop           7.026 ms    7.114 ms    35.4%
-    normalize               0.932 ms    1.003 ms     4.7%
-    infer (ONNX Runtime)    5.752 ms    6.980 ms    29.0%
-    postprocess             0.028 ms    0.035 ms     0.1%
-    total                  19.867 ms   21.041 ms
+    decode                  5.983 ms    6.100 ms    31.6%
+    resize + crop           6.994 ms    7.041 ms    36.9%
+    normalize               0.876 ms    0.925 ms     4.6%
+    infer (ONNX Runtime)    5.001 ms    7.126 ms    26.4%
+    postprocess             0.022 ms    0.026 ms     0.1%
+    total                  18.954 ms   21.034 ms
 
 == case 4: large model (cat.png, ResNet50) ==
 
@@ -68,20 +68,20 @@ main.py: 107 lines of code
 
 [2] Where one request spends its time (200 requests after 10 warm-ups)
                               median         p95    share
-    decode                  3.452 ms    3.542 ms     8.1%
-    resize + crop           0.873 ms    0.917 ms     2.0%
-    normalize               0.918 ms    0.967 ms     2.1%
-    infer (ONNX Runtime)   37.546 ms   39.155 ms    87.6%
-    postprocess             0.035 ms    0.042 ms     0.1%
-    total                  42.863 ms   44.438 ms
+    decode                  3.403 ms    3.485 ms     8.1%
+    resize + crop           0.871 ms    0.907 ms     2.1%
+    normalize               0.865 ms    0.909 ms     2.0%
+    infer (ONNX Runtime)   37.083 ms   38.532 ms    87.8%
+    postprocess             0.031 ms    0.035 ms     0.1%
+    total                  42.260 ms   43.795 ms
 
-Env: Python 3.12.13, onnxruntime 1.32.0, numpy 2.5.5, arm/arm64, ORT intra_op_num_threads=0 (0 = default ORT)
+Env: Python 3.14.6, onnxruntime 1.32.0, numpy 2.5.5, arm/arm64, ORT intra_op_num_threads=0 (0 = default ORT)
 
 Summary (median ms)        prep     model     total
-    small PNG             5.151     5.708    10.880
-    small JPEG            2.500     5.701     8.221
-    large JPEG           14.037     5.752    19.867
-    large model           5.256    37.546    42.863
+    small PNG             5.026     5.525    10.583
+    small JPEG            2.395     5.482     7.888
+    large JPEG           13.865     5.001    18.954
+    large model           5.142    37.083    42.260
 
 ===== Go =====
 main.go: 231 lines of code
@@ -96,12 +96,12 @@ main.go: 231 lines of code
 
 [2] Where one request spends its time (200 requests after 10 warm-ups)
                               median         p95    share
-    decode                  6.189 ms    6.265 ms    41.6%
-    resize + crop           2.647 ms    2.860 ms    17.8%
-    normalize               0.234 ms    0.250 ms     1.6%
-    infer (ONNX Runtime)    5.805 ms    6.633 ms    39.0%
+    decode                  6.156 ms    6.212 ms    41.9%
+    resize + crop           2.640 ms    2.705 ms    18.0%
+    normalize               0.234 ms    0.237 ms     1.6%
+    infer (ONNX Runtime)    5.681 ms    6.893 ms    38.7%
     postprocess             0.010 ms    0.010 ms     0.1%
-    total                  14.868 ms   15.754 ms
+    total                  14.697 ms   15.964 ms
 
 == case 2: small JPEG (cat.jpg, MobileNetV2) ==
 
@@ -113,12 +113,12 @@ main.go: 231 lines of code
 
 [2] Where one request spends its time (200 requests after 10 warm-ups)
                               median         p95    share
-    decode                  1.681 ms    1.728 ms    15.7%
-    resize + crop           3.040 ms    3.536 ms    28.4%
-    normalize               0.234 ms    0.241 ms     2.2%
-    infer (ONNX Runtime)    5.715 ms    6.465 ms    53.4%
+    decode                  1.661 ms    1.704 ms    15.3%
+    resize + crop           3.015 ms    3.067 ms    27.7%
+    normalize               0.234 ms    0.237 ms     2.1%
+    infer (ONNX Runtime)    5.973 ms    6.964 ms    54.9%
     postprocess             0.010 ms    0.010 ms     0.1%
-    total                  10.696 ms   11.482 ms
+    total                  10.887 ms   11.863 ms
 
 == case 3: large JPEG (cat-large.jpg, MobileNetV2) ==
 
@@ -130,12 +130,12 @@ main.go: 231 lines of code
 
 [2] Where one request spends its time (200 requests after 10 warm-ups)
                               median         p95    share
-    decode                 19.439 ms   19.589 ms    36.4%
-    resize + crop          28.303 ms   29.429 ms    53.0%
-    normalize               0.238 ms    0.258 ms     0.4%
-    infer (ONNX Runtime)    5.313 ms    6.733 ms     9.9%
+    decode                 19.339 ms   19.413 ms    36.8%
+    resize + crop          27.982 ms   28.954 ms    53.2%
+    normalize               0.235 ms    0.240 ms     0.4%
+    infer (ONNX Runtime)    4.891 ms    5.642 ms     9.3%
     postprocess             0.010 ms    0.010 ms     0.0%
-    total                  53.428 ms   55.411 ms
+    total                  52.549 ms   53.573 ms
 
 == case 4: large model (cat.png, ResNet50) ==
 
@@ -147,20 +147,20 @@ main.go: 231 lines of code
 
 [2] Where one request spends its time (200 requests after 10 warm-ups)
                               median         p95    share
-    decode                  6.227 ms    6.472 ms    13.3%
-    resize + crop           2.670 ms    3.465 ms     5.7%
-    normalize               0.234 ms    0.244 ms     0.5%
-    infer (ONNX Runtime)   37.754 ms   40.356 ms    80.4%
-    postprocess             0.010 ms    0.038 ms     0.0%
-    total                  46.965 ms   50.123 ms
+    decode                  6.156 ms    6.202 ms    13.3%
+    resize + crop           2.637 ms    2.710 ms     5.7%
+    normalize               0.234 ms    0.238 ms     0.5%
+    infer (ONNX Runtime)   37.259 ms   40.179 ms    80.5%
+    postprocess             0.010 ms    0.014 ms     0.0%
+    total                  46.302 ms   49.230 ms
 
 Env: Go 1.27.4, github.com/microsoft/onnxruntime/go v0.0.0-20261113061211-fab30a46491a, onnxruntime 1.32.0, darwin/arm64, SessionOptions default (intra_op_num_threads=0 = default ORT)
 
 Summary (median ms)        prep     model     total
-    small PNG             9.072     5.805    14.868
-    small JPEG            4.956     5.715    10.696
-    large JPEG           48.001     5.313    53.428
-    large model           9.133    37.754    46.965
+    small PNG             9.035     5.681    14.697
+    small JPEG            4.913     5.973    10.887
+    large JPEG           47.543     4.891    52.549
+    large model           9.028    37.259    46.302
 
 ===== Rust =====
 main.rs: 157 lines of code
@@ -175,12 +175,12 @@ main.rs: 157 lines of code
 
 [2] Where one request spends its time (200 requests after 10 warm-ups)
                               median         p95    share
-    decode                  1.786 ms    1.855 ms    18.9%
-    resize + crop           1.888 ms    1.947 ms    20.0%
-    normalize               0.120 ms    0.127 ms     1.3%
-    infer (ONNX Runtime)    5.628 ms    6.722 ms    59.5%
+    decode                  1.750 ms    1.845 ms    19.9%
+    resize + crop           1.713 ms    1.773 ms    19.4%
+    normalize               0.117 ms    0.125 ms     1.3%
+    infer (ONNX Runtime)    5.209 ms    6.773 ms    59.1%
     postprocess             0.007 ms    0.007 ms     0.1%
-    total                   9.456 ms   10.579 ms
+    total                   8.817 ms   10.481 ms
 
 == case 2: small JPEG (cat.jpg, MobileNetV2) ==
 
@@ -192,12 +192,12 @@ main.rs: 157 lines of code
 
 [2] Where one request spends its time (200 requests after 10 warm-ups)
                               median         p95    share
-    decode                  0.869 ms    0.916 ms    10.3%
-    resize + crop           1.887 ms    1.952 ms    22.3%
-    normalize               0.121 ms    0.130 ms     1.4%
-    infer (ONNX Runtime)    5.568 ms    6.419 ms    65.8%
+    decode                  0.772 ms    0.821 ms    10.1%
+    resize + crop           1.712 ms    1.750 ms    22.3%
+    normalize               0.117 ms    0.124 ms     1.5%
+    infer (ONNX Runtime)    5.045 ms    6.753 ms    65.8%
     postprocess             0.007 ms    0.007 ms     0.1%
-    total                   8.466 ms    9.328 ms
+    total                   7.664 ms    9.388 ms
 
 == case 3: large JPEG (cat-large.jpg, MobileNetV2) ==
 
@@ -209,12 +209,12 @@ main.rs: 157 lines of code
 
 [2] Where one request spends its time (200 requests after 10 warm-ups)
                               median         p95    share
-    decode                  8.856 ms    8.949 ms    35.8%
-    resize + crop          10.431 ms   10.555 ms    42.2%
-    normalize               0.125 ms    0.131 ms     0.5%
-    infer (ONNX Runtime)    5.273 ms    6.701 ms    21.3%
-    postprocess             0.007 ms    0.008 ms     0.0%
-    total                  24.728 ms   26.282 ms
+    decode                  8.061 ms    8.194 ms    35.1%
+    resize + crop           9.879 ms    9.970 ms    43.0%
+    normalize               0.123 ms    0.128 ms     0.5%
+    infer (ONNX Runtime)    4.855 ms    7.100 ms    21.2%
+    postprocess             0.007 ms    0.007 ms     0.0%
+    total                  22.952 ms   25.188 ms
 
 == case 4: large model (cat.png, ResNet50) ==
 
@@ -226,17 +226,17 @@ main.rs: 157 lines of code
 
 [2] Where one request spends its time (200 requests after 10 warm-ups)
                               median         p95    share
-    decode                  1.842 ms    1.908 ms     4.5%
-    resize + crop           1.895 ms    1.965 ms     4.6%
-    normalize               0.118 ms    0.128 ms     0.3%
-    infer (ONNX Runtime)   37.457 ms   38.667 ms    90.6%
+    decode                  1.799 ms    1.841 ms     4.5%
+    resize + crop           1.721 ms    1.734 ms     4.3%
+    normalize               0.118 ms    0.120 ms     0.3%
+    infer (ONNX Runtime)   36.502 ms   39.890 ms    90.9%
     postprocess             0.007 ms    0.008 ms     0.0%
-    total                  41.348 ms   42.606 ms
+    total                  40.137 ms   43.601 ms
 
 Env: ort 2.0.0-rc.15, image 0.25.10, onnxruntime dylib git-commit-id=fab30a4, macos/aarch64, ORT thread default
 
 Summary (median ms)        prep     model     total
-    small PNG             3.804     5.628     9.456
-    small JPEG            2.892     5.568     8.466
-    large JPEG           19.421     5.273    24.728
-    large model           3.872    37.457    41.348
+    small PNG             3.583     5.209     8.817
+    small JPEG            2.602     5.045     7.664
+    large JPEG           18.070     4.855    22.952
+    large model           3.638    36.502    40.137

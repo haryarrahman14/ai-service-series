@@ -6,14 +6,14 @@ The shared example for parts 1–4: image classification with MobileNetV2. The m
 
 ## Status
 
-- [x] 01 · Why is every AI service written in Python? → `01-why-python/article.md`
+- [x] 01 · Why is almost every AI service written in Python? → `01-why-python/article.md`
 - [ ] 02 · Python vs Go vs Rust as HTTP services under load
 - [ ] 03 · To be decided
 - [ ] 04 · To be decided
 
 ## Outline of parts 1–4
 
-### 01 · Why is every AI service written in Python?
+### 01 · Why is almost every AI service written in Python?
 
 Where the time of one inference request actually goes, measured with the same model, images and ONNX Runtime in Python, Go and Rust.
 

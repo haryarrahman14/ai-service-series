@@ -4,7 +4,7 @@ The counterpart of `../python/main.py`: section [1] (classification) and [2] (wh
 
 ## Requirements
 
-[Rust](https://rustup.rs/), then from the `ai-series/` folder:
+[Rust](https://rustup.rs/). `rust-toolchain.toml` in this folder pins Rust 1.100.0 for this crate only; rustup installs it on the first `cargo` call and your default toolchain stays as it is. Then, from the `ai-series/` folder:
 
 ```sh
 sh shared/get_onnxruntime.sh

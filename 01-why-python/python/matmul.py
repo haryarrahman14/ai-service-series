@@ -1,5 +1,5 @@
 # /// script
-# requires-python = ">=3.12,<3.13"
+# requires-python = ">=3.14,<3.15"
 # dependencies = [
 #     "numpy==2.5.5",
 # ]

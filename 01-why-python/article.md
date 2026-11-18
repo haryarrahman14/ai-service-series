@@ -1,8 +1,8 @@
-# Why is every AI service written in Python? Why not Go, which is simpler, or Rust, which is faster?
+# Why is almost every AI service written in Python? Why not Go, which is simpler, or Rust, which is faster?
 
 *Bassically · AI Service series, part 1. I measured this on my own machine. The code is in the repo.*
 
-Short answer: Python is slow, but in an AI service it does almost none of the work. The heavy steps run in C and C++ libraries, and those libraries are so good that Python was the fastest of the three on JPEG photos. Python is also where models are made.
+Short answer: Python is slow, but in an AI service it does almost none of the work. The heavy steps run in C and C++ libraries, and those libraries are so good that Python was the fastest of the three on large JPEG photos. Python is also where models are made.
 
 ## What I tested
 
@@ -21,11 +21,11 @@ A small AI service: a photo goes in, a model guesses what is in it.
 An AI model is, underneath, millions of multiplications. So I measured one such job: multiplying two 200x200 tables of numbers, which takes 8 million multiplications. I did it twice: once with a plain Python loop, once with NumPy.
 
 ```
-pure Python  : 280.952 ms
+pure Python  : 340.530 ms
 NumPy (@)    :   0.058 ms
 ```
 
-NumPy is about 5,000 times faster, because it hands the work to a library written in C.
+NumPy is about 5,900 times faster, because it hands the work to a library written in C.
 
 ## But the heavy work is not done by Python
 
@@ -57,7 +57,7 @@ normalize    NumPy (C)            a loop I wrote              a loop I wrote
 model        ONNX Runtime (C++)   ONNX Runtime (C++)          ONNX Runtime (C++)
 ```
 
-Only ONNX Runtime is truly the same in all three. Go and Rust have no NumPy, so I wrote normalize myself as a short loop. That loop turned out faster than NumPy for this step: 0.12 ms in Rust, 0.23 ms in Go, 0.90 ms in Python.
+Only ONNX Runtime is truly the same in all three. Go and Rust have no NumPy, so I wrote normalize myself as a short loop. That loop turned out faster than NumPy for this step: 0.12 ms in Rust, 0.23 ms in Go, 0.89 ms in Python.
 
 One photo and one model would be thin evidence, so I ran four cases:
 
@@ -70,10 +70,10 @@ Total time for one request, median in milliseconds:
 
 ```
                  Python       Go     Rust
-small PNG        10.880   14.975    9.465
-small JPEG        8.221   10.758    8.531
-large JPEG       19.805   53.886   24.816
-large model      42.863   46.965   41.402
+small PNG        10.663   15.130    9.029
+small JPEG        7.917   11.238    7.825
+large JPEG       18.986   52.561   23.077
+large model      42.111   46.603   40.286
 ```
 
 All three languages answer "Egyptian cat" in all four cases.
@@ -82,23 +82,25 @@ All three languages answer "Egyptian cat" in all four cases.
 
 *The winner depends on the case. Go is last in all four.*
 
-## The model step costs the same in every language
+## The model step costs almost the same in every language
 
 Time spent running the model, in milliseconds:
 
 ```
                  Python       Go     Rust
-small PNG         5.668    5.805    5.628
-small JPEG        5.674    5.763    5.643
-large JPEG        5.686    5.388    5.323
-large model      37.546   37.754   37.506
+small PNG         5.575    6.047    5.399
+small JPEG        5.468    6.332    5.184
+large JPEG        5.005    4.896    4.877
+large model      36.853   37.531   36.620
 ```
 
-Within each case the three numbers are almost the same, because all three languages call the same C++ engine.
+Within each case the three numbers are close, because all three languages call the same C++ engine.
+
+Python and Rust are level. Go is not stable in the two small cases: in some runs it is level with the other two, in others about 1 ms slower, so its median sits about 0.5 ms higher. I have not pinned down the cause.
 
 ![The model step takes the same time in Python, Go and Rust](https://raw.githubusercontent.com/haryarrahman14/ai-service-series/main/01-why-python/img/en/3-same-model.png)
 
-*Running the model costs the same in every language.*
+*Running the model costs almost the same in every language.*
 
 ## The difference is in preparing the image
 
@@ -106,19 +108,19 @@ Time spent on decode, resize and normalize, in milliseconds:
 
 ```
                  Python       Go     Rust
-small PNG         5.189    9.106    3.813
-small JPEG        2.501    4.984    2.896
-large JPEG       14.074   48.544   19.484
-large model       5.256    9.133    3.872
+small PNG         5.087    9.024    3.633
+small JPEG        2.442    4.912    2.622
+large JPEG       13.907   47.619   18.148
+large model       5.183    9.061    3.676
 ```
 
 Three things stand out:
 
-- **On JPEG, Python is the fastest.** Pillow decodes JPEG with libjpeg-turbo, a C library tuned for this processor. That beats Rust's image library here.
-- **Go is the slowest in every case.** Its image libraries are written in plain Go. On the large JPEG that costs 48.5 ms, against 14.1 ms in Python.
+- **On the large JPEG, Python is the fastest.** Pillow decodes JPEG with libjpeg-turbo, a C library tuned for this processor. On a large photo that beats Rust's image library. On the small JPEG, Python and Rust tie.
+- **Go is the slowest in every case.** Its image libraries are written in plain Go. On the large JPEG that costs 47.6 ms, against 13.9 ms in Python.
 - **With a large model the gap matters less.** The 5 ms that Go loses on the image is a third of a small request, but only a tenth of a ResNet50 request.
 
-![Image preparation time for the small PNG: Rust 3.81 ms, Python 5.19 ms, Go 9.11 ms](https://raw.githubusercontent.com/haryarrahman14/ai-service-series/main/01-why-python/img/en/4-image-prep.png)
+![Image preparation time for the small PNG: Rust 3.63 ms, Python 5.09 ms, Go 9.02 ms](https://raw.githubusercontent.com/haryarrahman14/ai-service-series/main/01-why-python/img/en/4-image-prep.png)
 
 *The gap between the languages comes from the image libraries.*
 
@@ -150,7 +152,7 @@ The ONNX Runtime bindings are not equally mature:
 
 The code is in three folders, `python/`, `go/` and `rust/`. Each program has the same twelve functions in the same order: `decode`, `resize`, `normalize`, `preprocess`, `infer`, `softmax`, `argmax`, `median`, `p95`, `classify`, `benchmark`, `main`.
 
-Each program times itself the same way: 10 warm-up requests, then 200 measured requests, then the median and 95th percentile of each step. I ran the whole thing five times; the tables show the middle run for each number. The five runs differ by less than 2%, except the model step in the large JPEG case, which moves by up to 7%. The raw output of all five is in `results/`.
+Each program times itself the same way: 10 warm-up requests, then 200 measured requests, then the median and 95th percentile of each step. I ran the whole thing ten times; the tables show the middle value of those ten runs. Between runs, the image numbers move by less than 2% and the model step by up to about 10%. The raw output of all ten is in `results/`.
 
 This is the measured loop in Python:
 
@@ -172,10 +174,10 @@ for _ in range(200):
 Go's image numbers looked too slow, so I checked them with Go's own benchmark tool:
 
 ```sh
-go test -bench . -benchmem -run '^$' -count 3
+go test -bench Decode -benchmem -run '^$'
 ```
 
-It reports 6.1 ms for decode and 2.5 ms for resize, which matches the program.
+It reports 6.1 ms for PNG decode, which matches the program.
 
 ## Is the comparison fair?
 
@@ -187,11 +189,9 @@ I checked that the three programs do the same work:
 - Go's slow image handling is real: unpacking the PNG data alone takes 3.39 ms in Go against 0.86 ms in C.
 - Python takes no shortcut on the large JPEG. Pillow can decode a JPEG at reduced size; I checked that it does not do so here.
 
-The audit found one unfair detail, in Python's favour: a data copy was being counted in the model step instead of in normalize. I fixed it; the total did not change.
-
 The full audit is in [FAIRNESS.md](https://github.com/haryarrahman14/ai-service-series/blob/main/01-why-python/FAIRNESS.md).
 
-Screenshots of one more run, taken after the five:
+Screenshots of one more run, taken outside those ten:
 
 ![Pure Python vs NumPy run](https://raw.githubusercontent.com/haryarrahman14/ai-service-series/main/01-why-python/proof/matmul.png)
 
@@ -215,14 +215,13 @@ Limits of this test:
 
 - It measures one request at a time, not a service receiving many requests at once. That is part 2.
 - All four cases use one photo of a cat. The large JPEG is an enlargement of it.
-- A busy machine ruins the numbers. One run made while other jobs were running gave Python 54 ms, and I discarded it.
 - On macOS the Rust binding uses Apple's CoreML by default. I forced CPU so all three use the same engine.
 
 ## Conclusion
 
 Training a model is done in Python, because the tools for it are there.
 
-The service that runs the model can be written in any of the three. In these four cases the model step cost the same everywhere, and the difference came from the image libraries: Rust was fastest on PNG, Python was fastest on JPEG, and Go was slowest every time.
+The service that runs the model can be written in any of the three. In these four cases the model step cost almost the same everywhere, and most of the difference came from the image libraries: Rust was fastest on PNG, Python was fastest on the large JPEG, and Go was slowest every time.
 
 So choosing Go or Rust does not make the model faster. What these tests do not show is how each one behaves with many requests at once.
 
@@ -234,9 +233,9 @@ Part 2 turns all three versions (Python, Go and Rust) into HTTP services and tes
 
 - MacBook Pro, Apple M1 Pro, 32 GB RAM, macOS 26.6.2
 - ONNX Runtime 1.32.0, CPU, default threads
-- Python 3.12.13, numpy 2.5.5, pillow 13.0.0
+- Python 3.14.6, numpy 2.5.5, pillow 13.0.0. Python 3.14 is the newest version ONNX Runtime 1.32.0 supports.
 - Go 1.27.4, `github.com/microsoft/onnxruntime/go` at the v1.32.0 commit, `golang.org/x/image` 0.48.0
-- Rust 1.97.1, `ort` 2.0.0-rc.15, `image` 0.25.10
+- Rust 1.100.0, `ort` 2.0.0-rc.15, `image` 0.25.10
 
 Code: [github.com/haryarrahman14/ai-service-series](https://github.com/haryarrahman14/ai-service-series)
 

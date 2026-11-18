@@ -1,6 +1,8 @@
 # Fairness audit: Python vs Go vs Rust
 
-What was checked to make sure `python/main.py`, `go/main.go` and `rust/src/main.rs` do the same work, and where they still differ. Measured on an Apple M1 Pro (8 performance + 2 efficiency cores), macOS, on AC power, under `caffeinate -i`. Raw output of the five runs quoted below: `results/run1.txt` to `run5.txt`.
+> Note: the article's tables use the median of ten runs (`results/run1.txt` to `run10.txt`). The tables in this audit were computed from the first five (`run1` to `run5`). Across all ten, Go's model step in the two small cases alternates between about 5.7 ms (level with Python and Rust) and about 6.3 ms; the cause is not established. A single test with Go's garbage collector off brought it level with Rust, which suggests the collector but does not prove it.
+
+What was checked to make sure `python/main.py`, `go/main.go` and `rust/src/main.rs` do the same work, and where they still differ. Measured on an Apple M1 Pro (8 performance + 2 efficiency cores), macOS, on AC power, under `caffeinate -i`. Versions: CPython 3.14.6 (uv's build), Go 1.27.4, Rust 1.100.0 (pinned for the crate by `rust/rust-toolchain.toml`); onnxruntime 1.32.0, numpy 2.5.5, Pillow 13.0.0, ort 2.0.0-rc.15, image 0.25.10, golang.org/x/image 0.48.0, ONNX Runtime Go binding at the v1.32.0 release commit (`fab30a4`). Raw output of the five runs quoted below: `results/run1.txt` to `run5.txt` (measured 2026-11-18). Sections marked *earlier toolchain* were measured on 2026-11-17 with CPython 3.12.13 and Rust 1.97.1; the code they examine is unchanged.
 
 ## The four cases
 
@@ -25,7 +27,7 @@ Same list, same order, same names in all three programs.
 | Execution provider | `CPUExecutionProvider` (`get_providers()` returns only CPU, for both models) | default session options, CPU | `AutoDevicePolicy::PreferCPU`, which registers no extra EP (ort's own default on macOS would add CoreML) |
 | Threads | `intra_op_num_threads=0` (ORT default) | `nil` options (ORT default) | ort builder default: no thread setting, no global pool |
 | Graph optimisation | ORT default, `ORT_ENABLE_ALL` (read back from both sessions) | ORT default | ORT default (ort does not change it) |
-| Build | CPython 3.12.13; the work runs in Pillow, NumPy and ORT C/C++ code | `go build` (default, optimised, no race detector) | `cargo run --release` (opt-level 3, no profile overrides) |
+| Build | CPython 3.14.6; the work runs in Pillow, NumPy and ORT C/C++ code | `go build` with Go 1.27.4 (default, optimised, no race detector) | `cargo run --release` with rustc 1.100.0 (opt-level 3, no profile overrides) |
 | Iterations | 10 warm-ups and 200 timed requests per case | same | same |
 | Clock | `time.perf_counter()` | `time.Now()` (monotonic reading) | `std::time::Instant` |
 | Statistics | median, and p95 with linear interpolation (`np.percentile`) | same formula, hand-written | same formula, hand-written |
@@ -56,7 +58,7 @@ Intermediate sizes are identical in every case: 451x300 and 1920x1277 both resiz
 
 **No shortcut in Pillow.** Pillow can decode a JPEG at 1/2, 1/4 or 1/8 scale in the DCT domain (`draft`), and `resize` can pre-shrink with `reducing_gap`. Neither is active here. After `Image.open(...).convert("RGB")`, `decoderconfig` is `()` (it is only set by `draft()`), the decoded size is the full 1920x1277, and the tile is a plain full-size `jpeg` tile. `resize` is called without `reducing_gap`, which defaults to `None`. Pillow's decoded pixels also match Rust's full-size decode to within 4 levels (below), which a 1/8-scale decode could not do. Go and Rust have no such mode on these code paths.
 
-## Same input, measured
+## Same input, measured (earlier toolchain)
 
 Each language's decoded image, its resized image, its input tensor and its logits were dumped once (from throwaway copies of the programs, not in this repo) and compared. Pixel values are out of 255. For Go's JPEG cases the "decoded" image is the `*image.YCbCr` converted with the standard library; Go's real pipeline never stores an RGB copy at full size.
 
@@ -97,7 +99,8 @@ Each program prints the tensor's mean and population std per case (`input tensor
 - **Go's `infer` copies the logits** (`slices.Clone`, 1000 floats); Rust's `to_vec()` does the same. *Judgement: negligible (4 KB).*
 - **Rust segment boundaries.** `decode` includes a `to_rgb8()` copy and `resize` includes a `to_image()` copy of the crop. Timed alone, `open` + `into_rgb8()` (no copy) costs the same 1.68 ms on the PNG. *Judgement: negligible.*
 - **Python's lazy loading.** `Image.open` only reads the header; the full decode happens in `convert`, inside the timed `decode`. *Judgement: no bias.*
-- **Model time is not perfectly constant across cases.** In `large JPEG`, Go's and Rust's `infer` median (5.39 and 5.32 ms) is about 0.3 to 0.4 ms below their small-image cases and below Python's 5.69 ms. It is not stable: per run, Go's value goes 5.31 / 5.23 / 5.39 / 5.59 / 5.72 ms and Rust's 5.27 / 5.30 / 5.32 / 5.54 / 5.68 ms. Same model, same input size, so the likely cause is machine state (clock and cache) after the heavy preprocessing, not the languages. *Judgement: a run-condition effect of about 7%, small next to the prep differences.*
+- **Model time is not perfectly constant across cases or days.** On 2026-11-17 Go's and Rust's `large JPEG` infer ran 0.3 to 0.4 ms below their small-image cases. In the 2026-11-18 runs every language's MobileNetV2 infer is lower in `large JPEG` (4.85 to 4.91 ms) than in the small cases, and Python's and Rust's infer is 0.3 to 0.6 ms lower than the day before for the same code and library. Same model and input size, so this is machine state (clocks, caches), not the languages. *Judgement: a run-condition effect of up to about 10%; compare languages within one run, not across days.*
+- **Go's garbage collector can overlap `infer`.** In the 2026-11-18 runs Go's MobileNetV2 infer in the two small cases is 6.33 and 6.39 ms (median of five), against 5.03 to 5.37 ms for Python and Rust, which call the same ORT; four of Go's five runs are at about 6.3 ms, one at 5.7 ms. Go allocates about 5 MB per request in `resize`, so the GC's background workers often run while ORT's threads are busy. A diagnostic run with `GOGC=off` (not used for any published number) brought Go's small-case infer to 5.32 and 5.12 ms, level with Rust; a normal run right after gave 5.76 and 5.71 ms. *Judgement: a real cost of Go's runtime in this workload, worth 0.4 to 1.3 ms per small request and variable between runs; not an unfairness to fix, since turning off the GC would be tuning.*
 
 ## Fixed during the first audit
 
@@ -124,29 +127,27 @@ Median `decode` and `resize` across the five runs, as throughput in source megap
 
 | | small PNG decode | small JPEG decode | large JPEG decode | large JPEG resize |
 |---|---|---|---|---|
-| Python | 3.40 ms = 40 MP/s | 0.75 ms = 180 MP/s | 6.13 ms = 400 MP/s | 7.04 ms = 348 MP/s |
-| Go | 6.19 ms = 22 MP/s | 1.68 ms = 80 MP/s | 19.44 ms = 126 MP/s | 28.90 ms = 85 MP/s |
-| Rust | 1.79 ms = 75 MP/s | 0.87 ms = 155 MP/s | 8.89 ms = 276 MP/s | 10.47 ms = 234 MP/s |
+| Python | 3.31 ms = 41 MP/s | 0.68 ms = 198 MP/s | 5.98 ms = 410 MP/s | 6.99 ms = 351 MP/s |
+| Go | 6.12 ms = 22 MP/s | 1.65 ms = 82 MP/s | 19.33 ms = 127 MP/s | 28.03 ms = 87 MP/s |
+| Rust | 1.75 ms = 77 MP/s | 0.77 ms = 175 MP/s | 8.06 ms = 304 MP/s | 9.88 ms = 248 MP/s |
 
 Notes on the table:
-- Hundreds of MP/s for libjpeg-turbo with NEON, roughly half that for zune-jpeg, and around 100 MP/s for scalar pure-Go JPEG are believable figures for one M1 Pro core.
+- Hundreds of MP/s for libjpeg-turbo with NEON, somewhat less for zune-jpeg, and around 100 MP/s for scalar pure-Go JPEG are believable figures for one M1 Pro core.
 - The small JPEG has a lower MP/s than the large one in every language because fixed per-file costs (open, header parsing, Huffman tables) dominate at 0.135 MP, and the enlarged image compresses unusually well.
+- Rust's image steps are 5 to 10% faster than with Rust 1.97.1 (small PNG resize 1.89 to 1.71 ms, large JPEG decode 8.89 to 8.06 ms) with the same crate versions, which fits a compiler upgrade.
 
-Independent checks outside the programs:
-- Python `timeit` (best of 5): `decode` 3.16 / 0.55 / 5.93 ms for PNG / JPEG / large JPEG; `resize` 0.86 / 0.86 / 7.00 ms.
-- Rust loop (best of 5): `decode` 1.68 / 0.75 / 8.71 ms; `resize` 1.85 / 1.85 / 10.32 ms.
-- `go test -bench`: `Decode` 6.26 ms, `DecodeJPEG` 1.64 ms, `DecodeLargeJPEG` 19.96 ms; resize of the large JPEG 28.1 ms.
+`go test -bench` on 2026-11-18: `Decode` 6.10 ms, `DecodeJPEG` 1.60 ms, `DecodeLargeJPEG` 19.47 ms, each at or a little below the in-program median. *Earlier toolchain* independent checks: Python `timeit` (best of 5) `decode` 3.16 / 0.55 / 5.93 ms for PNG / JPEG / large JPEG and `resize` 0.86 / 0.86 / 7.00 ms; a Rust loop (best of 5) `decode` 1.68 / 0.75 / 8.71 ms and `resize` 1.85 / 1.85 / 10.32 ms; `go test -bench` large-JPEG resize 28.1 ms. Python's small-JPEG decode is faster in a tight loop than inside the request loop, probably because caches are cold after each `infer`.
 
-Each check is at or a little below its in-program median, as expected for a best-of measurement. Python's small-JPEG decode is 0.55 ms in a tight loop against 0.75 ms inside the request loop, probably because the caches are cold after each `infer`.
+**Pure Python.** `matmul.py`'s pure-Python 200x200 multiplication takes 337 ms on CPython 3.14.6 (median of five) against 281 ms on 3.12.13; NumPy is unchanged at 0.058 ms. A micro-benchmark on this machine isolates the slowdown to the float multiply-accumulate in the inner loop (`s += y * y`: 130 ms on 3.12.13, 171 ms on 3.14.6), while integer loops and list indexing are within a few percent. Homebrew's CPython 3.14.4 is slower still (about 375 ms).
 
 **Model.** `infer` median for ResNet50 against MobileNetV2 on the same image:
-- Python: 37.55 / 5.67 = 6.6x
-- Go: 37.75 / 5.81 = 6.5x
-- Rust: 37.51 / 5.63 = 6.7x
+- Python: 36.59 / 5.37 = 6.8x
+- Go: 37.39 / 6.33 = 5.9x (Go's small-case MobileNetV2 time is inflated by GC overlap, see above)
+- Rust: 36.51 / 5.08 = 7.2x
 
-ResNet50 is about 4.1 GMACs per image against about 0.3 GMACs for MobileNetV2, i.e. roughly 220 and 110 GFLOP/s across the CPU cores. That is plausible for ORT's MLAS kernels on an M1 Pro, and depthwise convolutions are known to use the hardware less efficiently. The three languages land within 0.6% of each other on ResNet50.
+ResNet50 is about 4.1 GMACs per image against about 0.3 GMACs for MobileNetV2, i.e. roughly 220 and 110 GFLOP/s across the CPU cores. That is plausible for ORT's MLAS kernels on an M1 Pro, and depthwise convolutions are known to use the hardware less efficiently. The three languages land within 2.4% of each other on ResNet50 (Go highest).
 
-**Threads**, sampled with `ps -M` mid-benchmark (small PNG): 7 OS threads for Python and 7 for Rust (main thread plus ORT's pool); 17 for Go, the extra ones belonging to the Go runtime.
+**Threads** (*earlier toolchain*), sampled with `ps -M` mid-benchmark (small PNG): 7 OS threads for Python and 7 for Rust (main thread plus ORT's pool); 17 for Go, the extra ones belonging to the Go runtime.
 
 ## Does "the model step costs the same; the differences come from image handling" hold?
 
@@ -154,14 +155,14 @@ Medians of the five runs, in ms (prep = decode + resize + normalize, per request
 
 | Case | model Py / Go / Rust | prep Py / Go / Rust | total Py / Go / Rust |
 |---|---|---|---|
-| small PNG | 5.67 / 5.81 / 5.63 | 5.19 / 9.11 / 3.81 | 10.88 / 14.98 / 9.47 |
-| small JPEG | 5.67 / 5.76 / 5.64 | 2.50 / 4.98 / 2.90 | 8.22 / 10.76 / 8.53 |
-| large JPEG | 5.69 / 5.39 / 5.32 | 14.07 / 48.54 / 19.48 | 19.81 / 53.89 / 24.82 |
-| large model | 37.55 / 37.75 / 37.51 | 5.26 / 9.13 / 3.87 | 42.86 / 46.97 / 41.40 |
+| small PNG | 5.37 / 6.33 / 5.08 | 5.06 / 9.00 / 3.58 | 10.44 / 15.33 / 8.70 |
+| small JPEG | 5.15 / 6.39 / 5.03 | 2.43 / 4.90 / 2.60 | 7.60 / 11.32 / 7.66 |
+| large JPEG | 4.91 / 4.88 / 4.85 | 13.88 / 47.58 / 18.07 | 18.93 / 52.55 / 22.95 |
+| large model | 36.59 / 37.39 / 36.51 | 5.16 / 9.06 / 3.67 | 41.78 / 46.56 / 40.20 |
 
-- **small PNG, small JPEG, large model: yes.** The model step is within 0.18 ms (3%) across languages for MobileNetV2 and within 0.24 ms (0.6%) for ResNet50. The total gaps (up to 5.5 ms) are almost entirely prep.
-- **large JPEG: yes for the conclusion, not exactly for the premise.** The model step varies by 0.37 ms (7%, with Python slowest), but that is about 1% of the 34 ms gap between Go and Python, which is prep.
-- **Which language is fastest depends on the case.** Rust is fastest overall for the PNG and ResNet50 cases. Python is fastest for both JPEG cases, because Pillow's libjpeg-turbo decode and its integer resize beat Rust's `image` crate there. Go is slowest in every case, by 2.5 ms (small JPEG) to 34 ms (large JPEG), all of it image handling.
+- **Python and Rust: yes, in all four cases.** Their model step is within 0.29 ms (6%) on MobileNetV2 and 0.08 ms (0.2%) on ResNet50, and their total gap is prep.
+- **Go: mostly, not entirely.** In `large JPEG` all three run the model in 4.85 to 4.91 ms. In the two small cases Go's model step is 1.0 to 1.4 ms slower than the other two, and on ResNet50 0.8 to 0.9 ms slower, because Go's garbage collector overlaps `infer` (see above). Image handling is still most of Go's gap: in `small PNG` Go is 6.6 ms behind Rust, 5.4 ms of it prep; in `large JPEG` 29.6 ms behind, all of it prep.
+- **Which language is fastest depends on the case.** Rust is fastest for the PNG and ResNet50 cases. Python is fastest for `large JPEG` by 4.0 ms, because Pillow's libjpeg-turbo decode and its integer resize beat Rust's `image` crate there. For `small JPEG` Python and Rust are tied (7.60 vs 7.66 ms; the run ranges 7.49 to 7.95 and 7.64 to 7.93 overlap). Go is slowest in every case, by 3.7 ms (small JPEG) to 33.6 ms (large JPEG).
 - **Image handling's share of the request:**
-  - With MobileNetV2 it is 30 to 90% depending on format and size.
-  - With ResNet50 it drops to 9 to 19%, so a heavy model shrinks the language difference in relative terms. In absolute terms the difference stays the same: Go's prep costs about 4 to 5 ms more than Rust's in both PNG cases.
+  - With MobileNetV2 it is 32 to 91% depending on language, format and size.
+  - With ResNet50 it drops to 9 to 19%, so a heavy model shrinks the language difference in relative terms. In absolute terms it stays: Go's prep costs about 5.4 ms more than Rust's in both PNG cases.

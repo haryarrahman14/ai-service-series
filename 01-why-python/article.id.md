@@ -1,8 +1,8 @@
-# Kenapa AI service selalu pakai Python? Kenapa bukan Go yang lebih simpel, atau Rust yang lebih kencang?
+# Kenapa AI service hampir selalu pakai Python? Kenapa bukan Go yang lebih simpel, atau Rust yang lebih kencang?
 
 *Dasarnya · Seri AI Service, bagian 1. Semua saya ukur di mesin saya sendiri. Kodenya ada di repo.*
 
-Jawaban singkat: Python memang lambat, tapi di AI service Python hampir tidak mengerjakan apa-apa. Langkah beratnya jalan di library C dan C++, dan library itu sebagus itu sampai Python jadi yang tercepat dari ketiganya untuk foto JPEG. Model juga dibuat di Python.
+Jawaban singkat: Python memang lambat, tapi di AI service Python hampir tidak mengerjakan apa-apa. Langkah beratnya jalan di library C dan C++, dan library itu sebagus itu sampai Python jadi yang tercepat dari ketiganya untuk foto JPEG besar. Model juga dibuat di Python.
 
 ## Yang saya uji
 
@@ -21,11 +21,11 @@ Satu AI service kecil: satu foto masuk, model menebak isinya.
 Model AI pada dasarnya jutaan perkalian angka. Jadi saya ukur satu pekerjaan semacam itu: mengalikan dua tabel angka 200x200, yang butuh 8 juta perkalian. Saya kerjakan dua kali: sekali dengan loop Python biasa, sekali dengan NumPy.
 
 ```
-pure Python  : 280.952 ms
+pure Python  : 340.530 ms
 NumPy (@)    :   0.058 ms
 ```
 
-NumPy sekitar 5.000 kali lebih cepat, karena pekerjaannya diserahkan ke library yang ditulis dalam C.
+NumPy sekitar 5.900 kali lebih cepat, karena pekerjaannya diserahkan ke library yang ditulis dalam C.
 
 ## Tapi kerja beratnya bukan dikerjakan Python
 
@@ -57,7 +57,7 @@ normalize    NumPy (C)            loop yang saya tulis        loop yang saya tul
 model        ONNX Runtime (C++)   ONNX Runtime (C++)          ONNX Runtime (C++)
 ```
 
-Yang benar-benar sama di ketiganya cuma ONNX Runtime. Di Go dan Rust tidak ada NumPy, jadi normalize saya tulis sendiri sebagai loop pendek. Loop itu ternyata lebih cepat dari NumPy untuk langkah ini: 0,12 ms di Rust, 0,23 ms di Go, 0,90 ms di Python.
+Yang benar-benar sama di ketiganya cuma ONNX Runtime. Di Go dan Rust tidak ada NumPy, jadi normalize saya tulis sendiri sebagai loop pendek. Loop itu ternyata lebih cepat dari NumPy untuk langkah ini: 0,12 ms di Rust, 0,23 ms di Go, 0,89 ms di Python.
 
 Satu foto dan satu model itu bukti yang tipis, jadi saya jalankan empat kasus:
 
@@ -70,10 +70,10 @@ Total waktu satu request, median dalam milidetik:
 
 ```
                  Python       Go     Rust
-small PNG        10.880   14.975    9.465
-small JPEG        8.221   10.758    8.531
-large JPEG       19.805   53.886   24.816
-large model      42.863   46.965   41.402
+small PNG        10.663   15.130    9.029
+small JPEG        7.917   11.238    7.825
+large JPEG       18.986   52.561   23.077
+large model      42.111   46.603   40.286
 ```
 
 Ketiga bahasa menjawab "Egyptian cat" di keempat kasus.
@@ -82,23 +82,25 @@ Ketiga bahasa menjawab "Egyptian cat" di keempat kasus.
 
 *Pemenangnya tergantung kasus. Go terakhir di keempatnya.*
 
-## Langkah model sama mahalnya di semua bahasa
+## Langkah model hampir sama di semua bahasa
 
 Waktu untuk menjalankan model, dalam milidetik:
 
 ```
                  Python       Go     Rust
-small PNG         5.668    5.805    5.628
-small JPEG        5.674    5.763    5.643
-large JPEG        5.686    5.388    5.323
-large model      37.546   37.754   37.506
+small PNG         5.575    6.047    5.399
+small JPEG        5.468    6.332    5.184
+large JPEG        5.005    4.896    4.877
+large model      36.853   37.531   36.620
 ```
 
-Di tiap kasus, ketiga angkanya hampir sama, karena ketiga bahasa memanggil mesin C++ yang sama.
+Di tiap kasus ketiga angkanya berdekatan, karena ketiga bahasa memanggil mesin C++ yang sama.
+
+Python dan Rust setara. Go tidak stabil di dua kasus kecil: di sebagian run setara dengan dua bahasa lain, di sebagian lagi sekitar 1 ms lebih lambat, sehingga nilai tengahnya sekitar 0,5 ms di atas. Penyebabnya belum saya pastikan.
 
 ![Langkah model makan waktu yang sama di Python, Go, dan Rust](https://raw.githubusercontent.com/haryarrahman14/ai-service-series/main/01-why-python/img/id/3-same-model.png)
 
-*Menjalankan model sama mahalnya di semua bahasa.*
+*Menjalankan model hampir sama mahalnya di semua bahasa.*
 
 ## Bedanya ada di preprocessing gambar
 
@@ -106,19 +108,19 @@ Waktu untuk decode, resize, dan normalize, dalam milidetik:
 
 ```
                  Python       Go     Rust
-small PNG         5.189    9.106    3.813
-small JPEG        2.501    4.984    2.896
-large JPEG       14.074   48.544   19.484
-large model       5.256    9.133    3.872
+small PNG         5.087    9.024    3.633
+small JPEG        2.442    4.912    2.622
+large JPEG       13.907   47.619   18.148
+large model       5.183    9.061    3.676
 ```
 
 Tiga hal yang menonjol:
 
-- **Di JPEG, Python paling cepat.** Pillow men-decode JPEG dengan libjpeg-turbo, library C yang dioptimalkan untuk prosesor ini. Di sini itu lebih cepat dari library gambar Rust.
-- **Go paling lambat di semua kasus.** Library gambarnya ditulis pakai Go biasa. Di large JPEG itu makan 48,5 ms, lawan 14,1 ms di Python.
+- **Di JPEG besar, Python paling cepat.** Pillow men-decode JPEG dengan libjpeg-turbo, library C yang dioptimalkan untuk prosesor ini. Di foto besar itu lebih cepat dari library gambar Rust. Di JPEG kecil, Python dan Rust seri.
+- **Go paling lambat di semua kasus.** Library gambarnya ditulis pakai Go biasa. Di large JPEG itu makan 47,6 ms, lawan 13,9 ms di Python.
 - **Dengan model besar, selisihnya makin tidak terasa.** 5 ms yang hilang di Go untuk gambar itu sepertiga dari request kecil, tapi cuma sepersepuluh dari request ResNet50.
 
-![Waktu preprocessing gambar untuk small PNG: Rust 3,81 ms, Python 5,19 ms, Go 9,11 ms](https://raw.githubusercontent.com/haryarrahman14/ai-service-series/main/01-why-python/img/id/4-image-prep.png)
+![Waktu preprocessing gambar untuk small PNG: Rust 3,63 ms, Python 5,09 ms, Go 9,02 ms](https://raw.githubusercontent.com/haryarrahman14/ai-service-series/main/01-why-python/img/id/4-image-prep.png)
 
 *Selisih antar bahasa datang dari library gambarnya.*
 
@@ -150,7 +152,7 @@ Binding ONNX Runtime belum sama matangnya:
 
 Kodenya ada di tiga folder, `python/`, `go/`, dan `rust/`. Tiap program punya dua belas fungsi yang sama dengan urutan yang sama: `decode`, `resize`, `normalize`, `preprocess`, `infer`, `softmax`, `argmax`, `median`, `p95`, `classify`, `benchmark`, `main`.
 
-Tiap program mengukur dirinya sendiri dengan cara yang sama: 10 request warm-up, lalu 200 request yang diukur, lalu median dan p95 tiap langkah. Semuanya saya jalankan lima kali; tabel di atas memakai nilai tengah dari lima run itu. Selisih antar run di bawah 2%, kecuali langkah model di kasus large JPEG yang bergeser sampai 7%. Output mentah kelimanya ada di `results/`.
+Tiap program mengukur dirinya sendiri dengan cara yang sama: 10 request warm-up, lalu 200 request yang diukur, lalu median dan p95 tiap langkah. Semuanya saya jalankan sepuluh kali; tabel di atas memakai nilai tengah dari sepuluh run itu. Antar run, angka olah gambar bergeser di bawah 2%, dan langkah model bergeser sampai sekitar 10%. Output mentah kesepuluhnya ada di `results/`.
 
 Ini loop yang diukur di Python:
 
@@ -172,10 +174,10 @@ for _ in range(200):
 Angka gambar di Go terlihat terlalu lambat, jadi saya cek dengan tool benchmark bawaan Go:
 
 ```sh
-go test -bench . -benchmem -run '^$' -count 3
+go test -bench Decode -benchmem -run '^$'
 ```
 
-Hasilnya 6,1 ms untuk decode dan 2,5 ms untuk resize, cocok dengan programnya.
+Hasilnya 6,1 ms untuk decode PNG, cocok dengan programnya.
 
 ## Apakah perbandingannya setara?
 
@@ -187,11 +189,9 @@ Saya cek bahwa ketiga program mengerjakan hal yang sama:
 - Lambatnya pengolahan gambar di Go itu nyata: membuka data PNG saja butuh 3,39 ms di Go, lawan 0,86 ms di C.
 - Python tidak mengambil jalan pintas di large JPEG. Pillow bisa men-decode JPEG dalam ukuran yang diperkecil; saya cek bahwa itu tidak terjadi di sini.
 
-Audit ini menemukan satu hal yang tidak setara, dan itu menguntungkan Python: satu penyalinan data terhitung di langkah model, bukan di normalize. Sudah saya perbaiki; totalnya tidak berubah.
-
 Audit lengkapnya ada di [FAIRNESS.md](https://github.com/haryarrahman14/ai-service-series/blob/main/01-why-python/FAIRNESS.md).
 
-Screenshot dari satu run lagi, diambil setelah lima run tadi:
+Screenshot dari satu run lagi, diambil di luar sepuluh run tadi:
 
 ![Run pure Python vs NumPy](https://raw.githubusercontent.com/haryarrahman14/ai-service-series/main/01-why-python/proof/matmul.png)
 
@@ -215,14 +215,13 @@ Batasan uji ini:
 
 - Yang diukur satu request dalam satu waktu, bukan service yang menerima banyak request sekaligus. Itu bagian 2.
 - Keempat kasus memakai satu foto kucing. Large JPEG adalah perbesaran dari foto itu.
-- Mesin yang sibuk merusak angka. Satu run saat ada pekerjaan lain memberi Python 54 ms, dan run itu saya buang.
 - Di macOS, binding Rust memakai CoreML milik Apple secara default. Saya paksa ke CPU supaya ketiganya memakai mesin yang sama.
 
 ## Kesimpulan
 
 Training model dikerjakan di Python, karena alatnya ada di sana.
 
-Service yang menjalankan model bisa ditulis di mana saja dari ketiganya. Di empat kasus ini langkah modelnya sama mahal di semua bahasa, dan selisihnya datang dari library gambar: Rust paling cepat di PNG, Python paling cepat di JPEG, dan Go paling lambat di semuanya.
+Service yang menjalankan model bisa ditulis di mana saja dari ketiganya. Di empat kasus ini langkah modelnya hampir sama di semua bahasa, dan sebagian besar selisihnya datang dari library gambar: Rust paling cepat di PNG, Python paling cepat di JPEG besar, dan Go paling lambat di semuanya.
 
 Jadi memilih Go atau Rust tidak membuat modelnya lebih cepat. Yang belum terlihat dari uji ini: bagaimana tiap bahasa bekerja saat banyak request datang bersamaan.
 
@@ -234,9 +233,9 @@ Di bagian 2, ketiga versi (Python, Go, dan Rust) saya jadikan service HTTP, lalu
 
 - MacBook Pro, Apple M1 Pro, RAM 32 GB, macOS 26.6.2
 - ONNX Runtime 1.32.0, CPU, jumlah thread default
-- Python 3.12.13, numpy 2.5.5, pillow 13.0.0
+- Python 3.14.6, numpy 2.5.5, pillow 13.0.0. Python 3.14 adalah versi terbaru yang didukung ONNX Runtime 1.32.0.
 - Go 1.27.4, `github.com/microsoft/onnxruntime/go` di commit v1.32.0, `golang.org/x/image` 0.48.0
-- Rust 1.97.1, `ort` 2.0.0-rc.15, `image` 0.25.10
+- Rust 1.100.0, `ort` 2.0.0-rc.15, `image` 0.25.10
 
 Kode: [github.com/haryarrahman14/ai-service-series](https://github.com/haryarrahman14/ai-service-series)
 

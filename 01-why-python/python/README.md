@@ -4,7 +4,7 @@ One image classification request with ONNX Runtime 1.32.0, NumPy and Pillow, wit
 
 ## Requirements
 
-[`uv`](https://docs.astral.sh/uv/). `uv` takes care of Python and all dependencies. Once, from the `ai-series/` folder:
+[`uv`](https://docs.astral.sh/uv/). `uv` takes care of Python and all dependencies. `main.py` and `matmul.py` need Python 3.14 (`requires-python = ">=3.14,<3.15"`): 3.14 is the newest version onnxruntime 1.32.0 ships macOS arm64 wheels for. If uv finds a system 3.14 (for example Homebrew's) it uses that; `uv python install 3.14` gets uv's own build, which the published numbers use. `shared/export_model.py` stays on Python 3.12 so the exported ONNX files stay byte-identical. Once, from the `ai-series/` folder:
 
 ```sh
 uv run shared/export_model.py

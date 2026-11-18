@@ -4,7 +4,7 @@ The code and article for part 1 of the AI Service series: why Python is used in 
 
 ## Requirements
 
-[`uv`](https://docs.astral.sh/uv/). `uv` takes care of Python and all dependencies.
+[`uv`](https://docs.astral.sh/uv/). `uv` takes care of Python and all dependencies. The programs run on Python 3.14 (the newest version onnxruntime 1.32.0 ships wheels for); `shared/export_model.py` stays on Python 3.12.
 
 ## Running
 
@@ -26,7 +26,7 @@ Four cases, in the same order and with the same names in all three languages: `s
 
 ## Three languages, one request
 
-The same request is written in three folders, `python/`, `go/` and `rust/`, with the same model, images and ONNX Runtime. The three `main` files have the same functions, with the same names and order, so they can be read side by side line by line. Needs Go and Rust.
+The same request is written in three folders, `python/`, `go/` and `rust/`, with the same model, images and ONNX Runtime. The three `main` files have the same functions, with the same names and order, so they can be read side by side line by line. Needs Go (tested with 1.27.4) and Rust; `rust/rust-toolchain.toml` pins Rust 1.100.0 for that crate only.
 
 ```sh
 sh shared/get_onnxruntime.sh
