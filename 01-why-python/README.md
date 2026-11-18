@@ -1,6 +1,6 @@
 # 01 · Why Python
 
-The code and article for part 1 of the AI Service series: why Python is used in AI, and where the time of one inference request actually goes. Serving needs only ONNX Runtime, NumPy and Pillow, no PyTorch.
+The code for part 1 of the AI Service series: why Python is used in AI, and where the time of one inference request actually goes. Serving needs only ONNX Runtime, NumPy and Pillow, no PyTorch.
 
 ## Requirements
 
@@ -41,8 +41,7 @@ Cross-check for Go, from `go/`: `go test -bench . -benchmem -run '^$' -count 3`.
 
 - `python/`, `go/`, `rust/`: the same program in three languages.
 - `FAIRNESS.md`: fairness audit of the comparison.
-- `article.md`: the article in English.
-- `article.id.md`: the Indonesian translation, same content.
-- `img/id/`, `img/en/`: six article illustrations per language (PNG 3200x1800), including `6-four-cases.png` (scoreboard of the four cases).
-- `results/`: raw output of the five `run_all.sh` runs used by the tables in the article.
+- `results/`: raw output of the ten `run_all.sh` runs used by the tables in the article.
 - `proof/`: terminal screenshots of the runs used by the article.
+
+The article and its illustrations are in [`content/01-why-python/`](../content/01-why-python/).

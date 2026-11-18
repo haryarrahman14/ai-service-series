@@ -1,12 +1,12 @@
 # AI Service Series
 
-One example, three languages. Each part has an article (`article.md`, with the Indonesian translation in `article.id.md`) and code you can run.
+One example, three languages. Each part has code you can run, in its own folder (`01-why-python/`), and an article in `content/` (`article.md`, with the Indonesian translation in `article.id.md`).
 
 The shared example for parts 1–4: image classification with MobileNetV2. The model is exported to ONNX once (`shared/export_model.py`), and the same file is then run from Python, Go and Rust.
 
 ## Status
 
-- [x] 01 · Why is almost every AI service written in Python? → `01-why-python/article.md`
+- [x] 01 · Why is almost every AI service written in Python? → article: `content/01-why-python/article.md`, code: `01-why-python/`
 - [ ] 02 · Python vs Go vs Rust as HTTP services under load
 - [ ] 03 · To be decided
 - [ ] 04 · To be decided
