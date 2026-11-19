@@ -36,13 +36,12 @@ Tes yang adil bukan tes di mana ketiganya diberi angka yang sama. Tes yang adil 
 
 Untuk menemukan angka tiap bahasa, saya mencoba 33 kombinasi: berapa request sekaligus, berapa thread yang boleh dipakai model per request, berapa process untuk Python, dan untuk Rust dua cara memegang model yang dijelaskan di bawah. Aturan memilihnya sama untuk semuanya: pertama, tidak ada request yang gagal di tes mana pun; lalu, yang paling banyak dijawab per detik saat kebanjiran.
 
-```
-                          process       sekaligus          menunggu   salinan model
-Python                          5   8 per process    20 per process               5
-Go                              1              32               100               1
-Rust, sesuai aturan             1              20               100              20
-Rust, satu salinan bersama      1              10               100               1
-```
+| | Process | Sekaligus | Menunggu | Salinan model |
+|---|---:|---:|---:|---:|
+| Python | 5 | 8 per process | 20 per process | 5 |
+| Go | 1 | 32 | 100 | 1 |
+| Rust, sesuai aturan | 1 | 20 | 100 | 20 |
+| Rust, satu salinan bersama | 1 | 10 | 100 | 1 |
 
 ![Setelan akhir tiap bahasa: Python 5 process dengan 8 request sekaligus per process, Go 1 process dengan 32 sekaligus, Rust sesuai aturan dengan 20 sekaligus dan 20 salinan model, Rust satu salinan bersama dengan 10 sekaligus](https://raw.githubusercontent.com/haryarrahman14/ai-service-series/main/content/02-thousand-requests/img/id/2-best-settings.png)
 
@@ -75,14 +74,12 @@ Pertama, batasnya. Dengan 64 koneksi, masing-masing mengirim foto berikutnya beg
 
 Lalu saya mengirim request dengan laju satu setengah kali batas tiap server selama 20 detik, tidak peduli server sanggup atau tidak.
 
-```
-                                           Rust            Rust
-                      Python        Go     sesuai aturan   satu salinan
-gagal                      0         0        0               0
-dijawab "sibuk"        4.831     3.416    4.655           4.443
-dijawab per detik        473       389      453             397
-median menunggu       266 ms    338 ms   249 ms          262 ms
-```
+| | Python | Go | Rust, sesuai aturan | Rust, satu salinan |
+|---|---:|---:|---:|---:|
+| gagal | 0 | 0 | 0 | 0 |
+| dijawab "sibuk" | 4.831 | 3.416 | 4.655 | 4.443 |
+| dijawab per detik | 473 | 389 | 453 | 397 |
+| median menunggu | 266 ms | 338 ms | 249 ms | 262 ms |
 
 ![Di laju satu setengah kali batas: tidak ada request yang gagal di Python, Go, maupun Rust; kelebihannya dijawab sibuk dan sisanya dijawab dalam sekitar seperempat detik](https://raw.githubusercontent.com/haryarrahman14/ai-service-series/main/content/02-thousand-requests/img/id/3-overload.png)
 
@@ -98,14 +95,12 @@ Di setengah dari batas, antrean tidak ada sama sekali: median-nya 14,9 ms (Pytho
 
 Pertanyaan di judul dalam bentuk paling polos: seribu client masing-masing mengirim satu foto, di saat yang sama.
 
-```
-                                            Rust            Rust
-                       Python        Go     sesuai aturan   satu salinan
-dijawab                   255       592      228             174
-dijawab "sibuk"           745       408      772             826
-gagal                       0         0        0               0
-semua beres dalam     0,6 dtk   2,2 dtk  0,6 dtk         0,5 dtk
-```
+| | Python | Go | Rust, sesuai aturan | Rust, satu salinan |
+|---|---:|---:|---:|---:|
+| dijawab | 255 | 592 | 228 | 174 |
+| dijawab "sibuk" | 745 | 408 | 772 | 826 |
+| gagal | 0 | 0 | 0 | 0 |
+| semua beres dalam | 0,6 detik | 2,2 detik | 0,6 detik | 0,5 detik |
 
 ![Seribu request di saat yang sama: semuanya dijawab atau diberi tahu sibuk, tidak ada yang gagal](https://raw.githubusercontent.com/haryarrahman14/ai-service-series/main/content/02-thousand-requests/img/id/4-thousand-at-once.png)
 
@@ -119,13 +114,11 @@ Dijawab "sibuk" bukan kegagalan. Client tahu dalam hitungan milidetik dan bisa m
 
 Tes yang paling berat: seribu koneksi selama 20 detik, di mana client yang dijawab "sibuk" langsung mengirim request berikutnya. Tiap server sekarang dihujani puluhan ribu request per detik, dan harus menolak hampir semuanya.
 
-```
-                                            Rust            Rust
-                       Python        Go     sesuai aturan   satu salinan
-gagal                       0         0        0               0
-ditolak per detik      21.900    17.500   41.400          52.500
-dijawab per detik         221       238      271             186
-```
+| | Python | Go | Rust, sesuai aturan | Rust, satu salinan |
+|---|---:|---:|---:|---:|
+| gagal | 0 | 0 | 0 | 0 |
+| ditolak per detik | 21.900 | 17.500 | 41.400 | 52.500 |
+| dijawab per detik | 221 | 238 | 271 | 186 |
 
 ![Seribu client yang terus mencoba lagi: tidak ada request yang gagal; puluhan ribu request ditolak tiap detik sementara request sungguhan tetap dijawab](https://raw.githubusercontent.com/haryarrahman14/ai-service-series/main/content/02-thousand-requests/img/id/5-retry.png)
 
@@ -141,14 +134,12 @@ Hal yang sama terlihat di `/ping`, endpoint yang menjawab `{"ok":true}` tanpa me
 
 Tidak ada yang jebol. Yang berbeda adalah harga untuk tidak jebol, dan memory adalah bagian yang stabil dari run ke run:
 
-```
-                                                Rust            Rust
-                              Python       Go   sesuai aturan   satu salinan
-process                            5        1      1               1
-salinan model                      5        1     20               1
-memory saat idle              852 MB    99 MB  367 MB           84 MB
-memory tertinggi saat sibuk   933 MB   479 MB  675 MB          316 MB
-```
+| | Python | Go | Rust, sesuai aturan | Rust, satu salinan |
+|---|---:|---:|---:|---:|
+| process | 5 | 1 | 1 | 1 |
+| salinan model | 5 | 1 | 20 | 1 |
+| memory saat idle | 852 MB | 99 MB | 367 MB | 84 MB |
+| memory tertinggi saat sibuk | 933 MB | 479 MB | 675 MB | 316 MB |
 
 ![Harganya: memory saat idle 852 MB untuk Python dengan lima process, 99 MB untuk Go, 367 MB untuk Rust sesuai aturan, dan 84 MB untuk Rust dengan satu salinan model bersama](https://raw.githubusercontent.com/haryarrahman14/ai-service-series/main/content/02-thousand-requests/img/id/6-cost.png)
 

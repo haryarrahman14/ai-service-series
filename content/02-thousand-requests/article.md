@@ -36,13 +36,12 @@ A fair test is not one where all three get the same numbers. It is one where eac
 
 To find each language's numbers I tried 33 combinations: how many requests at once, how many threads the model may use per request, how many processes for Python, and for Rust the two ways of holding the model described below. The rule for choosing was the same for all: first, no failed request in any test; then, the most requests answered per second when overloaded.
 
-```
-                       processes   at once   waiting   copies of the model
-Python                         5    8 each   20 each                     5
-Go                             1        32       100                     1
-Rust, by the book              1        20       100                    20
-Rust, one shared copy          1        10       100                     1
-```
+| | Processes | At once | Waiting | Copies of the model |
+|---|---:|---:|---:|---:|
+| Python | 5 | 8 each | 20 each | 5 |
+| Go | 1 | 32 | 100 | 1 |
+| Rust, by the book | 1 | 20 | 100 | 20 |
+| Rust, one shared copy | 1 | 10 | 100 | 1 |
 
 ![The settings each language ended up with: Python 5 processes with 8 requests at once each, Go 1 process with 32 at once, Rust by the book with 20 at once and 20 copies of the model, Rust sharing one copy with 10 at once](https://raw.githubusercontent.com/haryarrahman14/ai-service-series/main/content/02-thousand-requests/img/en/2-best-settings.png)
 
@@ -75,14 +74,12 @@ First the ceiling. With 64 connections, each sending its next photo as soon as t
 
 Then I sent requests at one and a half times each server's ceiling for 20 seconds, whether or not it kept up.
 
-```
-                                         Rust          Rust
-                     Python       Go     by the book   one shared copy
-failed                    0        0        0             0
-told "busy"           4,831    3,416    4,655         4,443
-answered per second     473      389      453           397
-median wait          266 ms   338 ms   249 ms        262 ms
-```
+| | Python | Go | Rust, by the book | Rust, one shared copy |
+|---|---:|---:|---:|---:|
+| failed | 0 | 0 | 0 | 0 |
+| told "busy" | 4,831 | 3,416 | 4,655 | 4,443 |
+| answered per second | 473 | 389 | 453 | 397 |
+| median wait | 266 ms | 338 ms | 249 ms | 262 ms |
 
 ![At one and a half times the ceiling: no failed request in Python, Go or Rust; the surplus is told busy and the rest are answered in about a quarter of a second](https://raw.githubusercontent.com/haryarrahman14/ai-service-series/main/content/02-thousand-requests/img/en/3-overload.png)
 
@@ -98,14 +95,12 @@ At half the ceiling there is no queue at all: the median is 14.9 ms (Python), 17
 
 The question from the title in its plainest form: a thousand clients send one photo each, at the same moment.
 
-```
-                                         Rust          Rust
-                     Python       Go     by the book   one shared copy
-answered                255      592      228           174
-told "busy"             745      408      772           826
-failed                    0        0        0             0
-all dealt with in     0.6 s    2.2 s    0.6 s         0.5 s
-```
+| | Python | Go | Rust, by the book | Rust, one shared copy |
+|---|---:|---:|---:|---:|
+| answered | 255 | 592 | 228 | 174 |
+| told "busy" | 745 | 408 | 772 | 826 |
+| failed | 0 | 0 | 0 | 0 |
+| all dealt with in | 0.6 s | 2.2 s | 0.6 s | 0.5 s |
 
 ![A thousand requests at the same moment: every one is either answered or told busy, none fail](https://raw.githubusercontent.com/haryarrahman14/ai-service-series/main/content/02-thousand-requests/img/en/4-thousand-at-once.png)
 
@@ -119,13 +114,11 @@ Being told "busy" is not a failure. The client knows within milliseconds and can
 
 The hardest test: a thousand connections for 20 seconds, where a client that is told "busy" sends its next request immediately. Each server is now hit with tens of thousands of requests per second, and has to turn nearly all of them away.
 
-```
-                                             Rust          Rust
-                         Python        Go    by the book   one shared copy
-failed                        0         0       0             0
-turned away per second   21,900    17,500   41,400        52,500
-answered per second         221       238      271           186
-```
+| | Python | Go | Rust, by the book | Rust, one shared copy |
+|---|---:|---:|---:|---:|
+| failed | 0 | 0 | 0 | 0 |
+| turned away per second | 21,900 | 17,500 | 41,400 | 52,500 |
+| answered per second | 221 | 238 | 271 | 186 |
 
 ![A thousand clients retrying non-stop: no failed request; tens of thousands of requests are turned away each second while real ones are still answered](https://raw.githubusercontent.com/haryarrahman14/ai-service-series/main/content/02-thousand-requests/img/en/5-retry.png)
 
@@ -141,14 +134,12 @@ The same thing shows on `/ping`, an endpoint that answers `{"ok":true}` without 
 
 None of them broke. The cost of not breaking is where they differ, and memory is the part that is stable from run to run:
 
-```
-                                              Rust          Rust
-                          Python       Go     by the book   one shared copy
-processes                      5        1        1             1
-copies of the model            5        1       20             1
-memory when idle          852 MB    99 MB   367 MB         84 MB
-peak memory under load    933 MB   479 MB   675 MB        316 MB
-```
+| | Python | Go | Rust, by the book | Rust, one shared copy |
+|---|---:|---:|---:|---:|
+| processes | 5 | 1 | 1 | 1 |
+| copies of the model | 5 | 1 | 20 | 1 |
+| memory when idle | 852 MB | 99 MB | 367 MB | 84 MB |
+| peak memory under load | 933 MB | 479 MB | 675 MB | 316 MB |
 
 ![What it costs: memory when idle is 852 MB for Python with five processes, 99 MB for Go, 367 MB for Rust by the book and 84 MB for Rust sharing one copy of the model](https://raw.githubusercontent.com/haryarrahman14/ai-service-series/main/content/02-thousand-requests/img/en/6-cost.png)
 
