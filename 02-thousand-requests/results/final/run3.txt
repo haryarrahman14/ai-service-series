@@ -1,0 +1,54 @@
+2026-11-19 14:54:19  oha 1.17.0, 20 s per timed case, client timeout 10s, 10 CPU cores
+POST /classify with shared/cat.jpg (35 KB). busy = answered 503 at once (queue full), latency = answered requests only, conn ms = slowest connection setup, MB = peak memory (RSS, whole server), threads = peak OS threads.
+
+== rust-shared-l10 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '10', 'QUEUE': '100', 'SHARE_SESSION': '1'}
+   ready in 0.2 s, idle: 83.5 MB, 13 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   1 connection             1357       0      0     67.8     14.32     16.25     21.96     67.64       0.5    87.0      18
+   8 connections            8676       0      0    433.7     16.96     26.84     38.37     132.8       0.6   152.4      28
+   64 connections           8604       0      0    430.1    135.71    230.91     297.2    378.41     16.92   179.8      33
+   1000 connections         2975  671061      0    148.6    731.41   1143.32    1270.0   1521.11    143.58   292.9      34
+   1000 at once              169     831      0    314.0    270.09    511.84    524.47    532.71     235.2   284.7      34
+   rate 50%                 4338       0      0    216.8     16.12      37.5     77.69    161.64     13.68   269.1      34
+   rate 100%                8470     171      0    423.3    141.73    285.56    350.17    436.22     18.26   284.0      35
+   rate 150%                7937    4974      0    396.6    262.19    363.56    424.33    492.38      9.72   296.2      37
+   ping, 64 connections   850699       0      0  85042.8      0.54      1.53      5.06     66.47      2.23   210.2      36
+
+== go-l32-t1 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '32', 'QUEUE': '100'}
+   ready in 0.6 s, idle: 97.1 MB, 15 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   1 connection             1159       0      0     57.9     16.83      19.7     24.61     36.82      0.29    98.1      18
+   8 connections            6560       0      0    328.0     21.32     39.43     70.03    247.69      0.77   194.3      22
+   64 connections           6088       0      0    304.4    181.93    405.12    709.43   1151.63      2.49   371.9      44
+   1000 connections         4053  307039      0    202.5    671.04   1204.25   1497.33   3727.03   2020.68   423.1      46
+   1000 at once              278     722      0    304.0    519.07    885.18    902.07    905.74    580.29   388.1      45
+   rate 50%                 3278       0      0    163.8     18.24     96.64    239.28    424.89      8.56   337.1      45
+   rate 100%                5353    1067      0    267.5    447.63    761.77    975.84   1368.76      9.99   468.1      46
+   rate 150%                5867    3837      0    293.2    421.54    797.08   1082.51   1656.49      7.65   520.1      46
+   ping, 64 connections   904860       0      0  90465.4      0.49      2.02      5.25     22.76      2.99   422.5      46
+
+== python-w5-l40 ==  settings: {'ORT_THREADS': '1', 'WORKERS': '5', 'LIMIT': '8', 'QUEUE': '20'}
+   ready in 2.4 s, idle: 831.3 MB, 29 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   1 connection             1352       0      0     67.6     14.59     15.98     17.57     66.82      0.52   788.1      51
+   8 connections            8752       0      0    437.5     16.78     26.58     38.73     73.24      2.11   838.2      40
+   64 connections           8803       0      0    440.0    118.81    349.89    459.57    762.42      3.23   859.3      72
+   1000 connections         4555  438670      0    227.6    643.04    832.92    893.27    978.01    5867.0   933.2      72
+   1000 at once              167     833      0    451.0    238.87    353.04    360.31    365.02    135.64   933.3      72
+   rate 50%                 4398       0      0    219.8     14.87     16.75     24.23     74.12      2.51   936.8      72
+   rate 100%                7964     807      0    398.0     21.46    205.36    338.78    489.56      7.95   914.4      75
+   rate 150%                9456    3635      0    472.5     251.0    372.71    438.62    556.19     10.31   886.5      78
+   ping, 64 connections   472558       0      0  47232.8      0.99      3.15      7.27     69.41      3.55   886.6      72
+
+== rust-l20-t1 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '20', 'QUEUE': '100', 'SESSIONS': '20'}
+   ready in 0.44 s, idle: 373.3 MB, 13 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   1 connection             1371       0      0     68.5     14.31     15.98     18.84     36.03      0.31   378.5      18
+   8 connections            9621       0      0    481.0     15.44     22.98     31.79     75.17      0.45   306.3      25
+   64 connections           9358       0      0    467.8    126.55    210.25    254.38    370.59      2.37   640.0      48
+   1000 connections         4735  778881      0    236.5    507.81    784.24   1061.85   1305.66    353.32   669.4      48
+   1000 at once              275     725      0    373.7    410.68    719.52    728.37     729.0    451.56   592.7      48
+   rate 50%                 4783       0      0    238.9     17.29    257.48    363.03     534.9      5.87   586.4      48
+   rate 100%                7275    2246      0    363.6    287.74    554.78    665.51     853.4     10.29   622.2      57
+   rate 150%                9068    5257      0    453.0     249.3    372.03    446.96    618.65     10.83   637.2      57
+   ping, 64 connections   992279       0      0  99189.7      0.55      1.12      3.71     29.47       2.2   594.6      56

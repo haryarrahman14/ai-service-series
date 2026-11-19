@@ -1,0 +1,15 @@
+2026-11-19 08:40:11  oha 1.17.0, 20 s per timed case, client timeout 10s, 10 CPU cores
+POST /classify with shared/cat.jpg (35 KB). busy = answered 503 at once (queue full), latency = answered requests only, conn ms = slowest connection setup, MB = peak memory (RSS, whole server), threads = peak OS threads.
+
+== python-limited-5w ==  settings: {'ORT_THREADS': '1', 'WORKERS': '5', 'LIMIT': '2', 'QUEUE': '20'}
+   ready in 2.38 s, idle: 847.1 MB, 27 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   1 connection             1196       0      0     59.8     16.52     17.54     19.42     56.38       0.3   849.0      51
+   8 connections            8966       0      0    448.2     17.01     21.58     27.54     80.28      0.74   827.2      40
+   64 connections           9475       0      0    473.7    123.98    216.55    249.08    313.96      3.09   856.7      51
+   1000 connections         1705  782567      0     85.2   1313.26   1479.37   1558.08   1592.34   3938.86   683.3      47
+   1000 at once              151     849      0    402.2    207.59    350.08    359.58    364.84    125.08   681.4      43
+   rate 50%                 4052     666      0    202.5    168.97    182.37    199.07    225.95       4.6   686.7      48
+   rate 100%                5129    4330      0    256.4     24.03    183.25    203.47    215.81      0.95   652.8      46
+   rate 150%                6470    7706      0    323.4    177.82    188.12    223.43    248.01      8.04   650.0      45
+   ping, 64 connections   661445       0      0  66124.5      0.89      1.85       2.5     22.28      2.37   646.5      41

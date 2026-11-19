@@ -90,7 +90,7 @@ Python alone: `cd 01-why-python/python && uv run matmul.py && uv run main.py`. C
 
 ## Limits
 
-- One request at a time. Many requests at once is part 2.
+- One request at a time. Many requests at once is [part 2](../02-thousand-requests/).
 - One photo of a cat in all four cases; the large JPEG is that photo enlarged, not a native large photo.
 - One machine.
 

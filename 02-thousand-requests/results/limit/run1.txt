@@ -1,0 +1,41 @@
+2026-11-19 07:41:17  oha 1.17.0, 20 s per timed case, client timeout 10s, 10 CPU cores
+POST /classify with shared/cat.jpg (35 KB). busy = answered 503 at once (queue full), latency = answered requests only, conn ms = slowest connection setup, MB = peak memory (RSS, whole server), threads = peak OS threads.
+
+== python-limited ==  settings: {'ORT_THREADS': '1', 'LIMIT': '10', 'QUEUE': '100'}
+   ready in 1.5 s, idle: 165.2 MB, 10 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   1 connection             1181       0      0     59.0     16.76     17.75     19.43     63.01      1.02   170.8      14
+   8 connections            7408       0      0    370.2     19.62     32.45     53.33    156.15      0.64   243.7      18
+   64 connections           7639       0      0    381.9    160.66    225.25    265.04    312.39      2.61   228.6      20
+   1000 connections          958  184755    786     47.8   2345.01   3619.34    3728.5   3795.65    5860.5   251.5      20   {'Operation timed out (os error 60)': 704, 'timeout': 82}
+   1000 at once              508     492      0    229.7    738.57   2132.68   2179.13   2190.81    2024.7   254.3      20
+   rate 50%                 3817       0      0    190.8     17.21     23.13      73.8    143.33      7.44   251.2      20
+   rate 100%                7628       6      0    381.2     28.56    220.29    283.23    316.71       8.1   249.5      21
+   rate 150%                8962    2388      0    447.9    235.65    300.04    356.14    420.58      4.61   231.5      21
+   ping, 64 connections   153527       0      0  15348.2      4.04      4.65       8.1     66.64       2.4   233.1      20
+
+== go-limited ==  settings: {'ORT_THREADS': '1', 'LIMIT': '10', 'QUEUE': '100'}
+   ready in 0.31 s, idle: 96.8 MB, 13 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   1 connection             1051       0      0     52.5     18.86     19.96     22.08     42.74      0.31   105.2      19
+   8 connections            7083       0      0    354.1     20.98     30.55     44.27    136.71      0.55   210.3      23
+   64 connections           7992       0      0    399.5    154.94    195.25    250.71    308.74      3.47   244.8      25
+   1000 connections         2726  722427      0    136.2    823.32   1019.71   1123.51   1378.31    339.77   296.6      38
+   1000 at once              149     851      0    366.5     224.3    384.24    397.21    398.24    125.26   311.2      38
+   rate 50%                 3997       0      0    199.8     18.97     20.69     23.69      35.0      1.54   311.2      38
+   rate 100%                7726     166      0    386.1    155.47    303.46    398.54    456.57     11.05   305.8      39
+   rate 150%                7651    4221      0    382.2    269.82    378.34    474.02    538.13     10.34   296.7      39
+   ping, 64 connections   825716       0      0  82547.1      0.67      1.62      3.42     21.83       2.6   272.3      38
+
+== rust-limited ==  settings: {'ORT_THREADS': '1', 'SESSIONS': '10', 'LIMIT': '10', 'QUEUE': '100'}
+   ready in 0.38 s, idle: 222.0 MB, 13 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   1 connection             1194       0      0     59.7     16.53     17.64     20.94     43.65      0.32   223.8      18
+   8 connections            6367       0      0    318.3     19.64     50.48    117.44    331.51      0.56   282.3      26
+   64 connections           6830       0      0    341.4    157.65    329.07     398.6    554.17      2.52   303.5      31
+   1000 connections         3150  987550      0    157.3    680.63   1088.04   1193.85   1389.67    169.88   423.1      33
+   1000 at once              240     760      0    425.9    304.02    538.29    553.57    555.37    372.42   416.6      33
+   rate 50%                 3418       0      0    170.8     17.79    103.41    165.19    262.35     22.68   410.9      33
+   rate 100%                6138     576      0    306.7     106.7    521.59    624.71    686.89      5.13   403.4      34
+   rate 150%                7014    3120      0    350.4    276.47    511.76    677.26    783.88     11.58   420.0      34
+   ping, 64 connections   851159       0      0  85088.3      0.65      1.01      2.94     56.79      2.46   353.4      33

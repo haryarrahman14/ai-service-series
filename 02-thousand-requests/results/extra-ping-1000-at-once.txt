@@ -1,0 +1,10 @@
+2026-11-18 21:45:17  oha 1.17.0: oha -c 1000 -n 1000 GET /ping (no image, no model), default settings, three tries each
+python  ok 1000  failed 0  all answered in 182 ms  slowest connection setup 157 ms
+python  ok 1000  failed 0  all answered in 174 ms  slowest connection setup 154 ms
+python  ok 1000  failed 0  all answered in 268 ms  slowest connection setup 253 ms
+go  ok 1000  failed 0  all answered in 244 ms  slowest connection setup 235 ms
+go  ok 1000  failed 0  all answered in 358 ms  slowest connection setup 353 ms
+go  ok 1000  failed 0  all answered in 263 ms  slowest connection setup 258 ms
+rust  ok 1000  failed 0  all answered in 299 ms  slowest connection setup 290 ms
+rust  ok 1000  failed 0  all answered in 273 ms  slowest connection setup 268 ms
+rust  ok 1000  failed 0  all answered in 106 ms  slowest connection setup 95 ms

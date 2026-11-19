@@ -1,0 +1,170 @@
+2026-11-19 09:18:51  oha 1.17.0, 10 s per timed case, client timeout 10s, 10 CPU cores
+POST /classify with shared/cat.jpg (35 KB). busy = answered 503 at once (queue full), latency = answered requests only, conn ms = slowest connection setup, MB = peak memory (RSS, whole server), threads = peak OS threads.
+
+== python-w1-l10 ==  settings: {'ORT_THREADS': '1', 'WORKERS': '1', 'LIMIT': '10', 'QUEUE': '100'}
+   ready in 1.42 s, idle: 163.6 MB, 10 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           4608       0      0    460.6    135.43    160.14    197.41    223.75      2.51   262.9      23
+   1000 connections          702  114403      0     70.2   1368.83   2528.74   2646.25    2693.6   6561.29   296.3      23
+   1000 at once              437     563      0    360.7    519.37   1164.01   1199.86   1201.94   1065.61   296.9      20
+   rate 150%                4435    2367      0    442.9    232.28    327.95    504.27    549.18      5.52   301.3      20
+
+== python-w1-l20 ==  settings: {'ORT_THREADS': '1', 'WORKERS': '1', 'LIMIT': '20', 'QUEUE': '100'}
+   ready in 1.27 s, idle: 164.9 MB, 10 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           4648       0      0    464.6    134.37     167.6    210.65    299.12      2.52   332.4      33
+   1000 connections         1411   99926    414    141.0    810.14   1378.24   1433.88   1438.88   5862.49   355.0      33   {'Operation timed out (os error 60)': 414}
+   1000 at once              607     393      0    279.8     690.9   2096.68   2144.95   2157.09   2024.88   355.6      30
+   rate 150%                4582    2269      0    457.7     255.3    308.36    356.23    419.94      7.82   363.0      30
+
+== python-w2-l10 ==  settings: {'ORT_THREADS': '1', 'WORKERS': '2', 'LIMIT': '5', 'QUEUE': '50'}
+   ready in 2.21 s, idle: 419.2 MB, 15 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           4624       0      0    462.0    134.12    169.67    187.95    223.56      3.22   533.7      35
+   1000 connections          695  214890      0     69.4   1454.16   2349.59   2421.99   2452.19   8394.21   585.8      35
+   1000 at once              186     814      0    409.0    255.07     427.5    444.11    444.48    217.77   586.8      27
+   rate 150%                4567    2255      0    456.1    229.14    300.94    340.13    362.13       5.3   588.8      27
+
+== python-w2-l20 ==  settings: {'ORT_THREADS': '1', 'WORKERS': '2', 'LIMIT': '10', 'QUEUE': '50'}
+   ready in 2.23 s, idle: 421.3 MB, 15 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           4639       0      0    463.8    111.94    240.27    273.32    313.19      2.46   621.2      43
+   1000 connections         1383  186933      0    138.2    934.56   1316.21   1423.76   1447.83   7348.46   663.7      42
+   1000 at once              287     713      0    440.0    356.23    620.54    637.57    644.41    579.43   644.3      37
+   rate 150%                4603    2243      0    459.9    249.67    303.04    333.42    385.19      7.93   631.1      37
+
+== python-w5-l10 ==  settings: {'ORT_THREADS': '1', 'WORKERS': '5', 'LIMIT': '2', 'QUEUE': '20'}
+   ready in 2.32 s, idle: 855.7 MB, 28 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           4542       0      0    454.0    131.11    202.82    248.37    316.14      4.98   969.8      58
+   1000 connections          830  384478      0     82.9   1338.18   1606.46   1683.76   1745.95    2017.5  1026.4      57
+   1000 at once              139     861      0    405.7    194.69    320.69    326.41    330.76     96.31   968.2      42
+   rate 150%                2913    3852      0    291.0    180.84     194.9    238.44    249.08      2.67   896.2      42
+
+== python-w5-l20 ==  settings: {'ORT_THREADS': '1', 'WORKERS': '5', 'LIMIT': '4', 'QUEUE': '20'}
+   ready in 2.25 s, idle: 846.8 MB, 27 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           4169       0      0    416.8    128.97    259.46    316.24    374.09      2.45  1055.8      68
+   1000 connections         1360  290376      0    135.8    913.13   1195.52   1267.48   1307.85   3942.35   998.9      68
+   1000 at once              158     842      0    425.8    224.96    352.09    360.59    365.21    124.75   831.1      53
+   rate 150%                4578    1602      0    457.3    142.07    270.53    297.43    335.22      8.14   836.3      53
+
+== python-w10-l10 ==  settings: {'ORT_THREADS': '1', 'WORKERS': '10', 'LIMIT': '1', 'QUEUE': '10'}
+   ready in 2.53 s, idle: 1582.6 MB, 57 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           3380  111501      0    337.9     52.79    394.38    473.73    578.55      3.08  1622.1      97
+   1000 connections          833  389002      0     83.2   1295.11    1676.7   1785.87   1831.76    225.23  1406.5      96
+   1000 at once              132     868      0    397.0    192.52    307.11    321.76    324.27     95.05  1406.7      67
+   rate 150%                2496    2542      0    249.4    172.86    184.63    217.22    237.56      1.06  1409.5      67
+
+== python-w10-l20 ==  settings: {'ORT_THREADS': '1', 'WORKERS': '10', 'LIMIT': '2', 'QUEUE': '10'}
+   ready in 2.61 s, idle: 1609.3 MB, 57 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           3563   85707      0    356.2     99.95    378.83    471.67    587.47      4.14  1750.4     107
+   1000 connections         1446  321060      0    144.4    824.05   1061.22   1203.03   1268.52   1058.07  1735.2     107
+   1000 at once              139     861      0    422.1    198.89    313.08    319.36    321.94     97.77  1509.5      77
+   rate 150%                3299    2021      0    328.9      92.0    104.73    124.05    162.04      3.34  1517.7      77
+
+== go-l8-t1 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '8', 'QUEUE': '100'}
+   ready in 0.32 s, idle: 96.5 MB, 14 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           3616       0      0    361.3    172.72    207.35    247.87    285.24      2.41   222.4      25
+   1000 connections         1088  369474      0    108.7   1011.38   1230.29    1354.4   1440.89    178.96   298.2      37
+   1000 at once              133     867      0    244.3    294.48    520.51    531.29     534.4    125.45   306.2      35
+   rate 150%                3381    1939      0    336.8    302.41    411.65    449.76     483.1       6.7   263.4      35
+
+== rust-l8-t1 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '8', 'QUEUE': '100', 'SESSIONS': '8'}
+   ready in 0.36 s, idle: 190.0 MB, 13 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           4251       0      0    424.9    145.22    182.97    230.89    266.63      2.95   312.4      29
+   1000 connections         2203  584403      0    219.4    491.26    662.24    769.92    885.13    352.28   406.0      32
+   1000 at once              162     838      0    409.9    216.35    374.72     383.9    385.28    143.87   407.2      29
+   rate 150%                3946    2321      0    393.7    248.69    376.56    625.79    654.13       5.3   460.0      29
+
+== go-l10-t1 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '10', 'QUEUE': '100'}
+   ready in 0.32 s, idle: 97.2 MB, 13 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           3533       0      0    353.2    173.46    226.51    297.73    336.36      2.51   242.6      26
+   1000 connections         1325  376329      0    132.3    830.55   1075.02   1203.24   1440.13    156.61   282.5      37
+   1000 at once              142     858      0    345.5    232.81    388.68    399.37    400.83    125.27   310.8      37
+   rate 150%                3323    1867      0    332.1    321.91     416.9    475.18    535.12      5.55   310.9      37
+
+== rust-l10-t1 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '10', 'QUEUE': '100', 'SESSIONS': '10'}
+   ready in 0.42 s, idle: 221.2 MB, 14 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           3823       0      0    382.1    148.78    220.28    756.87    824.88      2.91   372.9      35
+   1000 connections         1687  501682      0    168.3    625.43   1068.57   1159.63   1219.85    169.95   475.7      35
+   1000 at once              170     830      0    310.4    228.46    525.54    538.05    540.39    157.93   476.5      34
+   rate 150%                4287    1337      0    427.7    248.04    299.01    321.39    390.45     11.66   480.0      34
+
+== go-l12-t1 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '12', 'QUEUE': '100'}
+   ready in 0.31 s, idle: 96.7 MB, 13 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           3519       0      0    351.8    175.94     230.3    269.07    342.45      2.53   267.3      29
+   1000 connections         1564  329637      0    156.2    719.16    963.18   1076.28   1279.42    155.82   297.8      37
+   1000 at once              151     849      0    359.9    224.92    399.15    409.76    411.07    123.68   334.4      37
+   rate 150%                4062    1109      0    405.8    266.94    323.09    353.75     390.7      4.96   341.6      37
+
+== rust-l12-t1 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '12', 'QUEUE': '100', 'SESSIONS': '12'}
+   ready in 0.38 s, idle: 245.4 MB, 13 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           4837       0      0    483.5     128.2    159.21    179.69     249.9      2.82   437.4      40
+   1000 connections         2726  575746      0    272.2    415.96     538.2    611.61     794.4    169.55   490.3      42
+   1000 at once              173     827      0    460.5    208.56     357.4    368.75    368.92    154.63   489.9      40
+   rate 150%                4759    2383      0    474.9    225.84    273.95    340.36    404.87     10.57   548.4      40
+
+== go-l16-t1 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '16', 'QUEUE': '100'}
+   ready in 0.32 s, idle: 97.0 MB, 14 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           4157       0      0    415.5    148.36    196.93    226.72    295.43      2.61   306.4      30
+   1000 connections         1956  320591      0    195.4    600.55    818.93    945.57   1312.82   1059.22   359.8      38
+   1000 at once              284     716      0    406.9    366.77    658.49    684.11    687.35     580.3   394.3      36
+   rate 150%                4047    2063      0    403.9    278.64    359.16    397.54     488.4     10.44   394.4      36
+
+== rust-l16-t1 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '16', 'QUEUE': '100', 'SESSIONS': '16'}
+   ready in 0.44 s, idle: 304.5 MB, 13 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           4883       0      0    488.1    121.88    176.31    209.45    260.21      4.61   546.8      51
+   1000 connections         2989  507807      0    298.6    393.35    545.38    635.18    889.55    236.01   606.9      51
+   1000 at once              248     752      0    475.4    276.18    496.13    508.63    512.01    295.69   606.2      49
+   rate 150%                4708    2499      0    470.0    237.55    301.65    337.99    414.42     10.12   664.3      49
+
+== go-l20-t1 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '20', 'QUEUE': '100'}
+   ready in 0.34 s, idle: 97.3 MB, 13 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           4183       0      0    418.1    145.54    213.12    259.21    330.46      2.57   340.8      32
+   1000 connections         2316  276010      0    231.4    527.04    770.42    911.74   1229.22   1057.47   409.2      37
+   1000 at once              370     630      0    412.8    475.13    854.21     880.5    887.42    582.22   431.0      43
+   rate 150%                4202    1945      0    419.5     281.7    359.13    411.87     495.6     10.39   438.5      43
+
+== rust-l20-t1 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '20', 'QUEUE': '100', 'SESSIONS': '20'}
+   ready in 0.48 s, idle: 362.8 MB, 13 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           4752       0      0    475.0     122.2    204.17    251.63    377.79      2.67   667.7      56
+   1000 connections         2231  335409      0    222.6    532.78    980.61   1192.74   1488.21    228.85   669.8      56
+   1000 at once              227     773      0    378.0    349.41    574.25    581.15    588.39     320.3   671.0      55
+   rate 150%                4758    2245      0    474.8    238.96    319.26    359.66    444.37     16.87   748.6      56
+
+== go-l5-t2 ==  settings: {'ORT_THREADS': '2', 'LIMIT': '5', 'QUEUE': '100'}
+   ready in 0.26 s, idle: 97.1 MB, 14 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           2854       0      0    285.3    223.42     237.9     267.3     282.2      2.46   178.8      23
+   1000 connections          846  423382      0     84.5   1233.57   1428.35   1513.23   1631.96    154.44   276.6      33
+   1000 at once              125     875      0    267.1    251.23    443.29    456.95    458.13     96.58   283.9      32
+   rate 150%                2863    1314      0    285.9    360.97    374.14    408.95    418.33      6.45   283.9      32
+
+== rust-l5-t2 ==  settings: {'ORT_THREADS': '2', 'LIMIT': '5', 'QUEUE': '100', 'SESSIONS': '5'}
+   ready in 0.28 s, idle: 140.1 MB, 18 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           3300       0      0    329.5    186.39    224.47    354.72    386.19       2.6   235.0      30
+   1000 connections          738  567715      0     73.6   1314.44    1759.7   1833.29   1912.15    263.06   326.5      30
+   1000 at once              261     739      0    298.6    457.72    823.58    854.54    863.75    527.69   324.3      27
+   rate 150%                2943    1892      0    293.9    340.49    435.31    458.31    481.16     10.69   394.4      27
+
+== go-l10-t1-gogc400 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '10', 'QUEUE': '100', 'GOGC': '400'}
+   ready in 0.32 s, idle: 106.2 MB, 14 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           3942       0      0    394.0    155.85    196.99    289.34    322.46      3.48   398.4      28
+   1000 connections         1615  358034      0    161.3    672.52     973.0   1074.76   1317.27    215.89   567.7      44
+   1000 at once              150     850      0    360.2    234.03    389.34    403.45    405.57     155.4   596.2      43
+   rate 150%                3899    1901      0    389.4    268.74    335.22    460.16    492.94     10.43   610.9      43

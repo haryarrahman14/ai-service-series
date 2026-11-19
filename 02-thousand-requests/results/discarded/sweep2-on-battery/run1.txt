@@ -1,0 +1,90 @@
+2026-11-19 13:49:58  oha 1.17.0, 10 s per timed case, client timeout 10s, 10 CPU cores
+POST /classify with shared/cat.jpg (35 KB). busy = answered 503 at once (queue full), latency = answered requests only, conn ms = slowest connection setup, MB = peak memory (RSS, whole server), threads = peak OS threads.
+
+== rust-shared-l8 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '8', 'QUEUE': '100', 'SHARE_SESSION': '1'}
+   ready in 0.22 s, idle: 83.2 MB, 13 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           4345       0      0    434.0     139.3    177.21    379.74    454.14      2.61   179.7      26
+   1000 connections         1583  590160      0    157.9    639.61   1029.68   1129.58   1243.16    173.63   283.4      28
+   1000 at once              142     858      0    382.6    205.84    346.75    360.27    362.33    110.86   284.0      27
+   rate 150%                3387    3026      0    337.4    283.07    453.44    708.75    731.63      8.59   319.7      27
+
+== rust-shared-l10 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '10', 'QUEUE': '100', 'SHARE_SESSION': '1'}
+   ready in 0.25 s, idle: 83.2 MB, 13 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           4028       0      0    402.5    151.75    205.14    255.04    338.15      2.95   195.0      32
+   1000 connections         1583  508156      0    158.0    670.98   1050.29   1141.61   1263.08    236.86   306.2      32
+   1000 at once              213     787      0    453.4    249.58    440.06    459.32    462.58    237.82   306.6      30
+   rate 150%                4112    1822      0    410.4    238.42    355.33    644.59    736.25      22.0   349.0      30
+
+== rust-shared-l12 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '12', 'QUEUE': '100', 'SHARE_SESSION': '1'}
+   ready in 0.22 s, idle: 80.8 MB, 13 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           3676       0      0    367.4    161.64    271.86    316.42    387.51      2.53   232.2      38
+   1000 connections         2030  494707      0    202.6    567.92    721.14    783.37    904.45    225.01   346.6      38
+   1000 at once              157     843      0    350.5    269.27    429.21    437.07    438.05    172.38   328.0      36
+   rate 150%                3661    1741      0    364.9    285.35    433.13    523.19    588.26     12.12   366.9      36
+
+== rust-shared-l16 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '16', 'QUEUE': '100', 'SHARE_SESSION': '1'}
+   ready in 0.24 s, idle: 86.2 MB, 13 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           3026       0      0    302.5    176.02    374.11    651.19    793.68      3.79   238.6      43
+   1000 connections         1398  301883      0    139.2    822.25   1164.01   1261.81   1382.54    259.47   336.8      43
+   1000 at once              218     782      0    337.7    392.54    628.21    632.12    636.56    366.59   332.8      42
+   rate 150%                2711    1715      0    270.4     397.1    610.89    697.73    879.91       7.9   342.2      42
+
+== rust-shared-l20 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '20', 'QUEUE': '100', 'SHARE_SESSION': '1'}
+   ready in 0.3 s, idle: 84.3 MB, 14 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           2014       0      0    201.3    289.13    493.27    599.21    709.48      5.91   264.0      44
+   1000 connections         1127  217690      0    112.4     897.7   1661.58   1920.09   2221.02    341.38   361.4      45
+   1000 at once              152     848      0    221.7    454.04    656.14    671.03    674.32    277.61   319.0      43
+   rate 150%                2560     423      0    255.7    325.03    705.37    764.09    849.38      26.6   352.7      43
+
+== rust-shared-l32 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '32', 'QUEUE': '100', 'SHARE_SESSION': '1'}
+   ready in 0.33 s, idle: 69.7 MB, 13 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           2830       0      0    282.4    203.48    418.85    550.19    674.98      6.41   384.0      65
+   1000 connections         2156  272844      0    215.0    584.66   1276.26    1464.3    1704.3    422.71   487.3      65
+   1000 at once              269     731      0    255.3    495.63    942.68   1028.88   1043.25    511.57   409.2      65
+   rate 150%                3533     583      0    353.0    341.88     488.7    551.65    684.87     18.76   496.0      65
+
+== go-l20-t1 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '20', 'QUEUE': '100'}
+   ready in 0.37 s, idle: 97.0 MB, 13 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           2941       0      0    294.0    208.35    305.55    356.71    481.27      2.47   335.3      37
+   1000 connections         1417  191496      0    141.5    821.53   1470.44   1681.12   2078.11   1057.37   385.1      51
+   1000 at once              463     537      0    192.0   1089.48   2350.41   2397.03   2401.17   2025.25   424.9      51
+   rate 150%                2918    1371      0    291.6    386.53    573.64    663.16    792.37     21.82   380.9      51
+
+== go-l32-t1 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '32', 'QUEUE': '100'}
+   ready in 0.26 s, idle: 103.0 MB, 12 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           3058       0      0    305.7    188.83     375.5    498.34    777.92      2.35   354.9      37
+   1000 connections         2085  151662      0    208.3    639.11   1024.19   1299.68   4730.13   3940.34   396.9      46
+   1000 at once              591     409      0    259.5    929.86   2210.65    2255.9   2268.28    2024.0   465.6      44
+   rate 150%                2949    1492      0    294.4    435.18    687.37    834.45   1019.73      7.93   481.7      44
+
+== python-w5-l20 ==  settings: {'ORT_THREADS': '1', 'WORKERS': '5', 'LIMIT': '4', 'QUEUE': '20'}
+   ready in 2.71 s, idle: 848.0 MB, 28 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           3432   26830      0    343.1     93.68    412.23    498.69    616.46      6.73  1049.0      68
+   1000 connections          941  174151      0     94.0   1169.58   1786.09   1876.56   1946.98   5859.67  1052.2      68
+   1000 at once              173     827      0    270.0    310.69    616.95    633.52    634.25    221.08   975.8      52
+   rate 150%                3347    1684      0    334.3    294.45    443.66     512.0    607.28      8.08   980.2      52
+
+== python-w5-l40 ==  settings: {'ORT_THREADS': '1', 'WORKERS': '5', 'LIMIT': '8', 'QUEUE': '20'}
+   ready in 3.22 s, idle: 819.0 MB, 29 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           3025       0      0    302.4    192.26    377.58    457.46    569.18      2.87  1179.1      89
+   1000 connections         1552  126808      0    152.2    839.44    1432.2   1577.64   1717.15   5864.66  1175.4      88
+   1000 at once              204     796      0    293.2    443.67    667.05    683.21    686.93    344.45  1072.1      72
+   rate 150%                3268    1130      0    326.2    327.43    539.27    633.96    761.01     11.69  1024.2      72
+
+== rust-l20-t1 ==  settings: {'ORT_THREADS': '1', 'LIMIT': '20', 'QUEUE': '100', 'SESSIONS': '20'}
+   ready in 0.49 s, idle: 370.3 MB, 13 threads
+   case                       ok    busy failed    req/s    p50 ms    p95 ms    p99 ms    max ms   conn ms      MB threads
+   64 connections           3378       0      0    337.7    173.68    302.17    443.03    569.83      3.84   666.7      47
+   1000 connections         1963  367799      0    196.0     611.4    935.85   1098.51   1403.51    341.58   693.3      47
+   1000 at once              192     808      0    418.9     264.4    439.53    450.05    450.85    198.23   691.5      45
+   rate 150%                4181     773      0    416.9    261.33    372.92    466.47    538.48      11.2   750.3      45

@@ -1,0 +1,4 @@
+github.com/microsoft/onnxruntime/go v0.0.0-20261113061211-fab30a46491a h1:SmOGWND7qGUbcarcxIgRtUcj9Bg3DKZzqWx5PXMRWas=
+github.com/microsoft/onnxruntime/go v0.0.0-20261113061211-fab30a46491a/go.mod h1:y6lrwg9wJfp1/eahM089k+5YM7nekCeWhl8UGvefyzo=
+golang.org/x/image v0.48.0 h1:1AvuPcuoOTJpA7s4VZ5umrb90T3So0rkB/bSGmxkxik=
+golang.org/x/image v0.48.0/go.mod h1:mmtg64iqJKGqEgy+r13dfybl85tmxUd2lMnmaiSdWYY=
